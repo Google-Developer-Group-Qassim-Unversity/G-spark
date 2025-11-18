@@ -1,53 +1,62 @@
 "use client";
 
-const ONE_SIGNAL_SDK_URL =
-  "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.js";
+export const ONESIGNAL_APP_ID = "cad9d5a4-834d-46ed-b0e4-57e4df6b8f70";
+const SDK_URL = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.js";
 
-export const ONESIGNAL_APP_ID =
-  "cad9d5a4-834d-46ed-b0e4-57e4df6b8f70";
+let sdkLoaded: Promise<any> | null = null;
 
-let oneSignalReady: Promise<any> | null = null;
-
-function loadOneSignalScript() {
+/* -------------------------
+   Load OneSignal SDK Script
+-------------------------- */
+function loadSDK() {
   if (document.getElementById("onesignal-sdk")) return;
 
   const script = document.createElement("script");
   script.id = "onesignal-sdk";
-  script.src = ONE_SIGNAL_SDK_URL;
+  script.src = SDK_URL;
   script.async = true;
   document.head.appendChild(script);
 }
 
-async function waitForOneSignal() {
-  if (oneSignalReady) return oneSignalReady;
+/* ----------------------------------------
+   Wait for OneSignal to be available
+----------------------------------------- */
+function waitForSDK() {
+  if (sdkLoaded) return sdkLoaded;
 
-  oneSignalReady = new Promise((resolve) => {
+  sdkLoaded = new Promise((resolve) => {
     const check = () => {
-      if ((window as any).OneSignal?.init) {
-        resolve((window as any).OneSignal);
-      } else {
-        setTimeout(check, 30);
-      }
+      const os = (window as any).OneSignal;
+      if (os?.init) resolve(os);
+      else setTimeout(check, 25);
     };
     check();
   });
 
-  return oneSignalReady;
+  return sdkLoaded;
 }
 
+/* ----------------------------------------
+   Initialize OneSignal (v16 config)
+----------------------------------------- */
 export async function initOneSignal() {
   if (typeof window === "undefined") return;
 
-  loadOneSignalScript();
-
-  const OneSignal = await waitForOneSignal();
+  loadSDK();
+  const OneSignal = await waitForSDK();
 
   try {
     await OneSignal.init({
       appId: ONESIGNAL_APP_ID,
+
+      // Do NOT specify serviceWorkerPath in v16.
+      // Make sure your workers are in /public
+      // OneSignal auto-detects them.
+
       allowLocalhostAsSecureOrigin: true,
-      serviceWorkerPath: "OneSignalSDKWorker.js",
-      serviceWorkerUpdaterPath: "OneSignalSDKUpdaterWorker.js",
+
+      // OPTIONAL — only add this if you have a Safari Web ID
+      // safari_web_id: process.env.NEXT_PUBLIC_OS_SAFARI_WEB_ID,
     });
 
     console.log("[OneSignal v16] Initialized");
@@ -56,38 +65,51 @@ export async function initOneSignal() {
   }
 }
 
+/* ----------------------------------------
+   Ask for permission and subscribe
+----------------------------------------- */
 export async function subscribeToNotifications() {
   try {
-    const OneSignal = await waitForOneSignal();
-    return await OneSignal.notifications.requestPermission(); 
+    const OneSignal = await waitForSDK();
+    const result = await OneSignal.Notifications.requestPermission();
+    return result;
   } catch (err) {
-    console.error("[OneSignal subscribe error]", err);
+    console.error("[subscribe error]", err);
     return "default";
   }
 }
 
+/* ----------------------------------------
+   Get current browser permission
+----------------------------------------- */
 export async function getNotificationPermission() {
   try {
-    const OneSignal = await waitForOneSignal();
-    return OneSignal.notifications.getPermission();
+    const OneSignal = await waitForSDK();
+    return await OneSignal.Notifications.getPermission();
   } catch {
     return "default";
   }
 }
 
+/* ----------------------------------------
+   Event listener for subscription changes
+----------------------------------------- */
 export async function onSubscriptionChange(
   callback: (isSubscribed: boolean) => void
 ) {
   try {
-    const OneSignal = await waitForOneSignal();
-    OneSignal.User.addEventListener("subscriptionChange", (event: any) => {
-      callback(event.detail.isSubscribed);
+    const OneSignal = await waitForSDK();
+    OneSignal.User.addEventListener("subscriptionChange", (ev: any) => {
+      callback(ev.detail.isSubscribed);
     });
   } catch (err) {
-    console.error("[OneSignal subscription listener error]", err);
+    console.error("[subscriptionChange error]", err);
   }
 }
 
+/* ----------------------------------------
+   Utility: Detect iOS (for PWA instructions)
+----------------------------------------- */
 export function isIOS() {
   if (typeof window === "undefined") return false;
   return /iPhone|iPad|iPod/.test(navigator.userAgent);
