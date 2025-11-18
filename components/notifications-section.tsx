@@ -23,12 +23,26 @@ import {
 import {
   initOneSignal,
   subscribeToNotifications,
-  isIOS,
   getSubscriptionInfo,
   onSubscriptionChange,
 } from "@/lib/onesignal";
 
 type PermissionStatus = "granted" | "denied" | "default";
+
+// كشف الآيفون حتى لو المتصفح مغير الـ userAgent (وضع سطح المكتب)
+function detectIOS(): boolean {
+  if (typeof window === "undefined") return false;
+
+  const ua = window.navigator.userAgent || "";
+  const platform = (window.navigator as any).platform || "";
+  const maxTouchPoints = (window.navigator as any).maxTouchPoints || 0;
+
+  const iOSByUA = /iPhone|iPad|iPod/.test(ua);
+  const iOSDesktopMode =
+    /Macintosh/.test(ua) && maxTouchPoints > 1; // iPad/iPhone مع "طلب موقع سطح المكتب"
+
+  return iOSByUA || iOSDesktopMode || /iPhone|iPad|iPod/.test(platform);
+}
 
 export function NotificationsSection() {
   const [permission, setPermission] = useState<PermissionStatus>("default");
@@ -63,7 +77,7 @@ export function NotificationsSection() {
         else setPermission("default");
       });
 
-      setIosInstructions(isIOS());
+      setIosInstructions(detectIOS());
     };
 
     run();
@@ -77,7 +91,6 @@ export function NotificationsSection() {
     try {
       await subscribeToNotifications();
 
-      // ما نحتاج نطارد OneSignal، نقرأ من Notification.permission
       await new Promise((r) => setTimeout(r, 100));
       await checkStatus();
     } catch (err) {
@@ -93,6 +106,7 @@ export function NotificationsSection() {
   return (
     <section
       id="notifications"
+      dir="rtl"
       className="min-h-screen flex items-center justify-center py-20 bg-gradient-to-br from-[var(--gspark-dark)] to-[var(--gspark-blue)]"
     >
       <div className="container mx-auto px-4">
@@ -103,18 +117,15 @@ export function NotificationsSection() {
             </div>
 
             <CardTitle className="text-3xl md:text-4xl font-bold text-white mb-2">
-              Enable Notifications
+              فعل الاشعارات
             </CardTitle>
 
-            <CardDescription
-              className="text-lg text-white/80"
-              style={{ direction: "rtl" }}
-            >
+            <CardDescription className="text-lg text-white/80">
               فعل الاشعارات للحصول على التحديثات
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 text-right">
             <Alert
               className={`${
                 isGranted
@@ -124,7 +135,7 @@ export function NotificationsSection() {
                   : "bg-white/10 border-white/20"
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-row-reverse">
                 {isGranted ? (
                   <CheckCircle2Icon className="h-5 w-5 text-[var(--gspark-green)]" />
                 ) : isDenied ? (
@@ -135,17 +146,17 @@ export function NotificationsSection() {
 
                 <AlertDescription className="text-white font-medium">
                   {isGranted
-                    ? "Notifications are enabled!"
+                    ? "تم تفعيل الاشعارات!"
                     : isDenied
-                    ? "Notifications are blocked by your browser."
-                    : "Notifications are not enabled"}
+                    ? "تم ايقاف الاشعارات من قبل المتصفح الخاص بك 😞"
+                    : "لم تقم بتفعيل الاشعارات😒"}
                 </AlertDescription>
               </div>
 
               {isDenied && (
                 <p className="text-white/80 mt-2 text-sm">
-                  You must unblock notifications in your browser settings to
-                  subscribe again.
+                  يجب ان تقوم بالغاء الحظر من المتصفح لكي تتمكن من تفعيل 
+                  الاشعارات مجددا.
                 </p>
               )}
             </Alert>
@@ -158,33 +169,33 @@ export function NotificationsSection() {
                 className="w-full bg-[var(--gspark-blue)] hover:bg-[var(--gspark-blue)]/90 text-white font-bold text-lg py-6 rounded-xl shadow-lg"
               >
                 {subscribing
-                  ? "Subscribing..."
+                  ? "الاشتراك بالاشعارات..."
                   : isGranted
-                  ? "Re-check Subscription"
-                  : "Enable Push Notifications"}
+                  ? "التحقق من الاشعارات"
+                  : "تفعيل الاشعارات"}
               </Button>
             )}
 
             {iosInstructions && (
               <Card className="bg-white/10 border-white/20">
                 <CardHeader>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-row-reverse">
                     <SmartphoneIcon className="h-5 w-5 text-[var(--gspark-yellow)]" />
                     <CardTitle className="text-lg text-white">
-                      iPhone Users
+                      لمستخدمين الايفون
                     </CardTitle>
                   </div>
                 </CardHeader>
 
                 <CardContent className="text-white/80 text-sm space-y-2">
                   <p className="font-semibold text-white">
-                    To enable notifications on iPhone:
+                    لتفعيل الاشعارات عبر الايفون:
                   </p>
-                  <ol className="list-decimal list-inside space-y-1 ml-2">
-                    <li>Tap the Share button</li>
-                    <li>Select “Add to Home Screen”</li>
-                    <li>Open the app from your home screen</li>
-                    <li>Allow notifications when prompted</li>
+                  <ol className="list-decimal list-inside space-y-1 mr-2">
+                    <li>الضغط على زر المشاركة</li>
+                    <li>اضغط على اضافة الى الصفحة الرئيسية</li>
+                    <li>قم بفتح التطبيق عبر الصفحة الرئيسية</li>
+                    <li>اضغط السماح بالاشعارات</li>
                   </ol>
                 </CardContent>
               </Card>
