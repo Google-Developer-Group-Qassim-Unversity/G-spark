@@ -5,7 +5,11 @@ const SDK_URL = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.js";
 
 let sdkLoaded: Promise<any> | null = null;
 
+/* -------------------------
+   Load OneSignal SDK Script
+-------------------------- */
 function loadSDK() {
+  if (typeof window === "undefined") return;
   if (document.getElementById("onesignal-sdk")) return;
 
   const script = document.createElement("script");
@@ -15,6 +19,9 @@ function loadSDK() {
   document.head.appendChild(script);
 }
 
+/* ----------------------------------------
+   Wait for OneSignal to be available
+----------------------------------------- */
 function waitForSDK() {
   if (sdkLoaded) return sdkLoaded;
 
@@ -30,6 +37,9 @@ function waitForSDK() {
   return sdkLoaded;
 }
 
+/* ----------------------------------------
+   Initialize OneSignal (v16)
+----------------------------------------- */
 export async function initOneSignal() {
   if (typeof window === "undefined") return;
 
@@ -48,51 +58,85 @@ export async function initOneSignal() {
   }
 }
 
+/* ----------------------------------------
+   Ask for permission (native prompt)
+----------------------------------------- */
 export async function subscribeToNotifications() {
   try {
     const OneSignal = await waitForSDK();
-    return await OneSignal.Notifications.requestPermission();
+    // Returns a boolean in v16 (true if permission granted)
+    const result = await OneSignal.Notifications.requestPermission();
+    return result;
   } catch (err) {
     console.error("[subscribe error]", err);
     return "default";
   }
 }
 
-export async function getNotificationPermission() {
-  try {
-    const OneSignal = await waitForSDK();
-    return await OneSignal.Notifications.getPermission();
-  } catch {
-    return "default";
-  }
+/* ----------------------------------------
+   Browser notification permission
+   "granted" | "denied" | "default"
+----------------------------------------- */
+export async function getNotificationPermission(): Promise<NotificationPermission> {
+  if (typeof window === "undefined") return "default";
+  if (!("Notification" in window)) return "default";
+
+  return Notification.permission;
 }
 
-export async function getSubscriptionInfo() {
-  const OneSignal = (window as any).OneSignal;
-  if (!OneSignal) return { permission: "default", isSubscribed: false };
+/* ----------------------------------------
+   Combined status for UI:
+   - browser permission
+   - OneSignal subscription (optedIn)
+----------------------------------------- */
+export async function getSubscriptionInfo(): Promise<{
+  permission: NotificationPermission;
+  isSubscribed: boolean;
+}> {
+  if (typeof window === "undefined") {
+    return { permission: "default", isSubscribed: false };
+  }
 
-  const permission = await OneSignal.Notifications.getPermission();
-  const subscription = await OneSignal.User.PushSubscription.getSubscription();
+  const OneSignal = await waitForSDK();
+
+  const permission: NotificationPermission =
+    "Notification" in window ? Notification.permission : "default";
+
+  const isSubscribed = !!OneSignal.User?.PushSubscription?.optedIn;
 
   return {
     permission,
-    isSubscribed: subscription?.optedIn ?? false,
+    isSubscribed,
   };
 }
 
-export async function onSubscriptionChange(callback: (isSubscribed: boolean) => void) {
+/* ----------------------------------------
+   Listen for subscription changes
+   (v16: User.PushSubscription "change" event)
+----------------------------------------- */
+export async function onSubscriptionChange(
+  callback: (isSubscribed: boolean) => void
+) {
+  if (typeof window === "undefined") return;
+
   try {
     const OneSignal = await waitForSDK();
 
-    OneSignal.User.addEventListener("subscriptionChange", async () => {
-      const sub = await OneSignal.User.PushSubscription.getSubscription();
-      callback(sub?.optedIn ?? false);
-    });
+    OneSignal.User.PushSubscription.addEventListener(
+      "change",
+      (event: any) => {
+        const isSubscribed = !!event?.current?.optedIn;
+        callback(isSubscribed);
+      }
+    );
   } catch (err) {
     console.error("[subscriptionChange error]", err);
   }
 }
 
+/* ----------------------------------------
+   Utility: Detect iOS (for PWA instructions)
+----------------------------------------- */
 export function isIOS() {
   if (typeof window === "undefined") return false;
   return /iPhone|iPad|iPod/.test(navigator.userAgent);

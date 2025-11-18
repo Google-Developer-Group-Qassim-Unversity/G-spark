@@ -35,6 +35,9 @@ export function NotificationsSection() {
   const [subscribing, setSubscribing] = useState(false);
   const [iosInstructions, setIosInstructions] = useState(false);
 
+  /* -----------------------------------------------
+     Check both browser permission + OneSignal status
+  ----------------------------------------------- */
   const checkStatus = useCallback(async () => {
     try {
       const { permission, isSubscribed } = await getSubscriptionInfo();
@@ -46,17 +49,22 @@ export function NotificationsSection() {
       } else {
         setPermission("default");
       }
-    } catch {
+    } catch (e) {
+      console.error("[checkStatus error]", e);
       setPermission("default");
     }
   }, []);
 
+  /* -----------------------------------------------
+     Initialize OneSignal on mount
+  ----------------------------------------------- */
   useEffect(() => {
     const run = async () => {
       await initOneSignal();
       await checkStatus();
 
-      onSubscriptionChange(() => {
+      // Subscribe to subscription changes
+      await onSubscriptionChange(() => {
         checkStatus();
       });
 
@@ -66,6 +74,9 @@ export function NotificationsSection() {
     run();
   }, [checkStatus]);
 
+  /* -----------------------------------------------
+     Handle subscribe button
+  ----------------------------------------------- */
   async function handleSubscribe() {
     if (subscribing) return;
 
@@ -74,7 +85,7 @@ export function NotificationsSection() {
     try {
       await subscribeToNotifications();
 
-      // Slight delay → OneSignal updates subscription state
+      // small delay so OneSignal updates optedIn state
       await new Promise((r) => setTimeout(r, 150));
 
       await checkStatus();
