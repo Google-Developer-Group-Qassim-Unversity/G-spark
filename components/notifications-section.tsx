@@ -6,21 +6,17 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-// Note: Imported XCircleIcon for denied state
 import { BellIcon, CheckCircle2Icon, AlertCircleIcon, SmartphoneIcon, XCircleIcon } from 'lucide-react'; 
-// ⭐️ IMPORTANT: Import onSubscriptionChange for instant UI updates
+// ⭐️ IMPORT the new listener function
 import { initOneSignal, subscribeToNotifications, getNotificationPermission, isIOS, onSubscriptionChange } from '@/lib/onesignal'; 
 
-// Define the precise type for the permission status from the SDK
 type PermissionStatus = 'granted' | 'denied' | 'default';
 
 export function NotificationsSection() {
-  // Use the type-safe union type for permission state
-  const [permission, setPermission] = useState<PermissionStatus>('default'); 
+  const [permission, setPermission] = useState<PermissionStatus>('default');
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
 
-  // Memoized function to check and set permission status
   const checkPermission = useCallback(async () => {
     try {
       const perm = await getNotificationPermission();
@@ -31,12 +27,11 @@ export function NotificationsSection() {
     }
   }, []);
 
-  // 1. Initialization, Initial Check, and Event Listener Setup
   useEffect(() => {
     initOneSignal(); 
-    checkPermission(); // Get initial status once.
+    checkPermission();
 
-    // ⭐️ FIX: Set up the highly reliable event listener (removes setInterval)
+    // ⭐️ FIX: Use the reliable event listener instead of setInterval
     const updateUiOnSubscriptionChange = () => {
         checkPermission();
     };
@@ -44,28 +39,26 @@ export function NotificationsSection() {
     // Register the listener
     onSubscriptionChange(updateUiOnSubscriptionChange);
 
-    // Set iOS instructions flag
     setShowIOSInstructions(isIOS());
 
-    // 🛑 The cleanup for the old setInterval is no longer needed in this structure.
-    
-  }, [checkPermission]); // We keep checkPermission in dependencies as it's a stable, memoized function.
+    // 🛑 Note: The old setInterval is completely removed here.
+
+  }, [checkPermission]);
 
 
   const handleSubscribe = async () => {
-    // Prevent action if already running or permission is granted/denied
     if (isSubscribing || permission === 'granted' || permission === 'denied') return;
 
     setIsSubscribing(true);
     
     try {
-      // Trigger the prompt. The UI update is now handled instantly by the listener in useEffect.
+      // Trigger the prompt. The UI update will be handled by the listener in useEffect.
       await subscribeToNotifications();
 
     } catch (error) {
       console.error('[OneSignal] Subscription failed:', error);
     } finally {
-      // Perform a final check to ensure the UI updates on failure
+      // Final check for edge cases and errors
       await checkPermission(); 
       setIsSubscribing(false);
     }

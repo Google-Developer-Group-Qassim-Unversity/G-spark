@@ -1,114 +1,117 @@
-// src/lib/onesignal.ts
+"use client";
 
-'use client';
+/**
+ * Next.js-compatible loader for OneSignal Web SDK v16
+ * This version matches your current NotificationsSection.tsx
+ */
 
-// --- Manual Type Declarations ---
-// This section provides types directly, avoiding the need for the problematic 'import type' statement.
-type NotificationPermission = 'default' | 'granted' | 'denied';
+const ONE_SIGNAL_SDK_URL =
+  "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.js";
 
-interface OneSignalCore {
-  initialized: boolean;
-  init: (options: any) => Promise<void>; 
-  push: (command: any) => void;
-  // Included for the instant UI update fix
-  on: (event: 'subscriptionChange', callback: (isSubscribed: boolean) => void) => void; 
-  Slidedown: {
-    promptPush: () => Promise<void>;
-  };
-  Notifications: {
-    getPermission: () => Promise<NotificationPermission>;
-    permission: NotificationPermission;
-  };
-  UserAgent?: {
-    isIOS: () => boolean;
-  };
+export const ONESIGNAL_APP_ID =
+  "cad9d5a4-834d-46ed-b0e4-57e4df6b8f70";
+
+let oneSignalReady: Promise<any> | null = null;
+
+// Load SDK as <script>, because Next.js cannot import remote ESM modules
+function loadOneSignalScript() {
+  if (document.getElementById("onesignal-sdk")) return;
+
+  const script = document.createElement("script");
+  script.id = "onesignal-sdk";
+  script.src = ONE_SIGNAL_SDK_URL;
+  script.async = true;
+  document.head.appendChild(script);
 }
 
-declare global {
-  interface Window {
-    OneSignalDeferred?: Array<(OneSignal: OneSignalCore) => void>;
-    OneSignal?: OneSignalCore;
-  }
-}
-// --- End Manual Type Declarations ---
+async function waitForOneSignal() {
+  if (oneSignalReady) return oneSignalReady;
 
-
-export const ONESIGNAL_APP_ID = 'cad9d5a4-834d-46ed-b0e4-57e4df6b8f70';
-
-function getOneSignal(): Promise<OneSignalCore | undefined> {
-  if (typeof window === 'undefined') return Promise.resolve(undefined);
-  
-  if (window.OneSignal && (window.OneSignal as any).initialized) {
-      return Promise.resolve(window.OneSignal);
-  }
-
-  return new Promise(resolve => {
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    window.OneSignalDeferred.push(resolve);
+  oneSignalReady = new Promise((resolve) => {
+    const check = () => {
+      if ((window as any).OneSignal?.init) {
+        resolve((window as any).OneSignal);
+      } else {
+        setTimeout(check, 30);
+      }
+    };
+    check();
   });
+
+  return oneSignalReady;
 }
 
-export function initOneSignal(): void {
-  if (typeof window === 'undefined') return;
+// 🔵 PUBLIC API FUNCTIONS 🔵
 
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  
-  window.OneSignalDeferred.push(async function(OneSignal) {
+/**
+ * Initialize OneSignal v16
+ */
+export async function initOneSignal() {
+  if (typeof window === "undefined") return;
+
+  loadOneSignalScript();
+
+  const OneSignal = await waitForOneSignal();
+
+  try {
     await OneSignal.init({
       appId: ONESIGNAL_APP_ID,
-      notifyButton: {
-        enable: false,
-      },
-      serviceWorkerPath: '/OneSignalSDKWorker.js',
+      allowLocalhostAsSecureOrigin: true,
+      serviceWorkerPath: "OneSignalSDKWorker.js",
+      serviceWorkerUpdaterPath: "OneSignalSDKUpdaterWorker.js",
     });
-    console.log('[OneSignal] SDK Initialized.');
-  });
+
+    console.log("[OneSignal v16] Initialized");
+  } catch (err) {
+    console.error("[OneSignal init error]", err);
+  }
 }
 
-export async function subscribeToNotifications(): Promise<NotificationPermission> {
-  const OneSignal = await getOneSignal();
-  if (!OneSignal) {
-    console.warn('[OneSignal] SDK not available for subscription.');
-    return 'default';
-  }
+/**
+ * Request browser notification permission
+ */
+export async function subscribeToNotifications() {
   try {
-    await OneSignal.Slidedown.promptPush(); 
-    const permission = await OneSignal.Notifications.getPermission();
-    return permission; 
-  } catch (error) {
-    console.error('[OneSignal] Subscription error:', error);
-    return 'default';
+    const OneSignal = await waitForOneSignal();
+    return await OneSignal.notifications.requestPermission();
+  } catch (err) {
+    console.error("[OneSignal subscribe error]", err);
+    return "default";
   }
 }
 
-export async function getNotificationPermission(): Promise<NotificationPermission> {
-  const OneSignal = await getOneSignal();
-  if (!OneSignal) { return 'default'; }
+/**
+ * Get current browser notification permission
+ */
+export async function getNotificationPermission() {
   try {
-    const permission = await OneSignal.Notifications.getPermission();
-    return permission; 
-  } catch (error) {
-    console.error('[OneSignal] Permission check error:', error);
-    return 'default';
+    const OneSignal = await waitForOneSignal();
+    return OneSignal.notifications.getPermission();
+  } catch {
+    return "default";
   }
 }
 
-// ⭐️ NEW FUNCTION: Used by the React component to listen for status changes
-export async function onSubscriptionChange(callback: (isSubscribed: boolean) => void) {
-  const OneSignal = await getOneSignal();
-  if (!OneSignal) {
-    console.warn('[OneSignal] SDK not available for subscription events.');
-    return;
+/**
+ * Listen for subscription changes
+ */
+export async function onSubscriptionChange(
+  callback: (isSubscribed: boolean) => void
+) {
+  try {
+    const OneSignal = await waitForOneSignal();
+    OneSignal.User.addEventListener("subscriptionChange", (event: any) => {
+      callback(event.detail.isSubscribed);
+    });
+  } catch (err) {
+    console.error("[OneSignal subscription listener error]", err);
   }
-  OneSignal.push(() => {
-    OneSignal.on('subscriptionChange', callback); 
-  });
 }
 
-export function isIOS(): boolean {
-  if (typeof window === 'undefined') return false;
-  if (window.OneSignal?.UserAgent) {
-    return (window.OneSignal.UserAgent as any).isIOS();
-  }
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+/**
+ * Detect iOS devices for PWA instructions
+ */
+export function isIOS() {
+  if (typeof window === "undefined") return false;
+  return /iPhone|iPad|iPod/.test(navigator.userAgent);
 }
