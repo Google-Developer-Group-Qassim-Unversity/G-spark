@@ -30,48 +30,47 @@ type PermissionStatus = "granted" | "denied" | "default";
 
 export function NotificationsSection() {
   const [permission, setPermission] = useState<PermissionStatus>("default");
-  const [isSubscribing, setIsSubscribing] = useState(false);
-  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
+  const [subscribing, setSubscribing] = useState(false);
+  const [iosInstructions, setIosInstructions] = useState(false);
 
   const checkPermission = useCallback(async () => {
     try {
       const perm = await getNotificationPermission();
       setPermission(perm as PermissionStatus);
-    } catch (error) {
-      console.error("Failed to get notification permission:", error);
+    } catch (err) {
+      console.error("Permission error:", err);
       setPermission("default");
     }
   }, []);
 
   useEffect(() => {
-    const init = async () => {
-      await initOneSignal();    
-      await checkPermission(); 
+    const run = async () => {
+      await initOneSignal();
+      await checkPermission();
 
       onSubscriptionChange(() => {
         checkPermission();
       });
 
-      setShowIOSInstructions(isIOS());
+      setIosInstructions(isIOS());
     };
 
-    init();
+    run();
   }, [checkPermission]);
 
-  const handleSubscribe = async () => {
-    if (isSubscribing) return;
+  async function handleSubscribe() {
+    if (subscribing) return;
 
-    setIsSubscribing(true);
-
+    setSubscribing(true);
     try {
       await subscribeToNotifications();
-    } catch (error) {
-      console.error("[OneSignal] Subscription failed:", error);
+    } catch (err) {
+      console.error("Subscribe error:", err);
     } finally {
-      await checkPermission(); 
-      setIsSubscribing(false);
+      await checkPermission();
+      setSubscribing(false);
     }
-  };
+  }
 
   const isGranted = permission === "granted";
   const isDenied = permission === "denied";
@@ -116,19 +115,20 @@ export function NotificationsSection() {
                 ) : (
                   <AlertCircleIcon className="h-5 w-5 text-[var(--gspark-yellow)]" />
                 )}
+
                 <AlertDescription className="text-white font-medium">
                   {isGranted
-                    ? "✅ Notifications are enabled!"
+                    ? "Notifications are enabled!"
                     : isDenied
-                    ? "❌ Notifications are blocked by your browser settings."
-                    : "⚠️ Notifications are not enabled"}
+                    ? "Notifications are blocked by your browser."
+                    : "Notifications are not enabled"}
                 </AlertDescription>
               </div>
 
               {isDenied && (
                 <p className="text-white/80 mt-2 text-sm">
-                  To subscribe, you must manually change permission settings for
-                  this site in your browser.
+                  You must unblock notifications in your browser settings to
+                  subscribe again.
                 </p>
               )}
             </Alert>
@@ -136,11 +136,11 @@ export function NotificationsSection() {
             {!isDenied && (
               <Button
                 size="lg"
+                disabled={subscribing}
                 onClick={handleSubscribe}
-                disabled={isSubscribing}
                 className="w-full bg-[var(--gspark-blue)] hover:bg-[var(--gspark-blue)]/90 text-white font-bold text-lg py-6 rounded-xl shadow-lg"
               >
-                {isSubscribing
+                {subscribing
                   ? "Subscribing..."
                   : isGranted
                   ? "Re-check Subscription"
@@ -148,7 +148,7 @@ export function NotificationsSection() {
               </Button>
             )}
 
-            {showIOSInstructions && (
+            {iosInstructions && (
               <Card className="bg-white/10 border-white/20">
                 <CardHeader>
                   <div className="flex items-center gap-2">
@@ -164,8 +164,7 @@ export function NotificationsSection() {
                   </p>
                   <ol className="list-decimal list-inside space-y-1 ml-2">
                     <li>Tap the Share button</li>
-                    <li>Select "Add to Home Screen"</li>
-                    <li>Tap Add</li>
+                    <li>Select “Add to Home Screen”</li>
                     <li>Open the app from your home screen</li>
                     <li>Allow notifications when prompted</li>
                   </ol>
