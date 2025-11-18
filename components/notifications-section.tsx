@@ -125,59 +125,61 @@ export function NotificationsSection() {
           </div>
 
           {/* Main Card */}
-          <Card className="shadow-xl border border-gray-200 bg-white">
-            <CardHeader>
-              <CardTitle className="text-2xl text-[#242E48] text-center" dir="rtl">
+          <Card className="shadow-xl border border-gray-200 bg-white overflow-hidden">
+            <CardHeader className="text-center px-6 py-8">
+              <CardTitle className="text-2xl text-[#242E48]" dir="rtl">
                 إشعارات الحدث
               </CardTitle>
-              <CardDescription className="text-gray-600 text-center" dir="rtl">
+              <CardDescription className="text-gray-600 mt-2" dir="rtl">
                 ابقَ على اطلاع بآخر المستجدات
               </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 px-6 pb-8">
               {/* Status Alert */}
-              <Alert
+              <div
                 className={`${
                   isGranted
                     ? "bg-[#34A853]/10 border-[#34A853]"
                     : isDenied
                     ? "bg-[#EA4335]/10 border-[#EA4335]"
                     : "bg-[#FBBC05]/10 border-[#FBBC05]"
-                } transition-all duration-300`}
+                } rounded-xl border-2 p-4 transition-all duration-300`}
               >
-                <div className="flex items-start gap-3 flex-row-reverse">
-                  {isGranted ? (
-                    <CheckCircle2Icon className="h-6 w-6 text-[#34A853] shrink-0 mt-0.5" />
-                  ) : isDenied ? (
-                    <XCircleIcon className="h-6 w-6 text-[#EA4335] shrink-0 mt-0.5" />
-                  ) : (
-                    <AlertCircleIcon className="h-6 w-6 text-[#FBBC05] shrink-0 mt-0.5" />
-                  )}
+                <div className="flex items-start gap-3" dir="rtl">
+                  <div className="shrink-0 mt-0.5">
+                    {isGranted ? (
+                      <CheckCircle2Icon className="h-6 w-6 text-[#34A853]" />
+                    ) : isDenied ? (
+                      <XCircleIcon className="h-6 w-6 text-[#EA4335]" />
+                    ) : (
+                      <AlertCircleIcon className="h-6 w-6 text-[#FBBC05]" />
+                    )}
+                  </div>
 
-                  <div className="flex-1 text-right" dir="rtl">
-                    <AlertDescription className="text-[#242E48] font-semibold text-right leading-relaxed">
+                  <div className="flex-1 min-w-0 text-right space-y-1">
+                    <p className="text-[#242E48] font-semibold text-base leading-relaxed">
                       {isGranted
                         ? "✅ تم تفعيل الاشعارات بنجاح!"
                         : isDenied
                         ? "⚠️ الاشعارات محظورة"
                         : "📢 لم يتم تفعيل الاشعارات بعد"}
-                    </AlertDescription>
+                    </p>
 
                     {isDenied && (
-                      <p className="text-gray-600 mt-2 text-sm text-right leading-relaxed">
+                      <p className="text-gray-600 text-sm leading-relaxed">
                         يرجى إلغاء حظر الإشعارات من إعدادات المتصفح لتتمكن من تفعيلها مجدداً
                       </p>
                     )}
 
                     {!isGranted && !isDenied && (
-                      <p className="text-gray-600 mt-2 text-sm text-right leading-relaxed">
+                      <p className="text-gray-600 text-sm leading-relaxed">
                         فعّل الإشعارات للحصول على التحديثات الفورية
                       </p>
                     )}
                   </div>
                 </div>
-              </Alert>
+              </div>
 
               {/* Action Button */}
               {!isDenied && (
@@ -190,32 +192,35 @@ export function NotificationsSection() {
                       ? "bg-[#34A853] hover:bg-[#34A853]/90"
                       : "bg-[#4285F4] hover:bg-[#4285F4]/90"
                   } text-white hover:scale-105`}
-                  dir="rtl"
                 >
-                  <BellIcon className="mr-2 h-6 w-6" />
-                  {subscribing
-                    ? "جاري الاشتراك..."
-                    : isGranted
-                    ? "التحقق من الاشعارات"
-                    : "تفعيل الاشعارات الآن"}
+                  <div className="flex items-center justify-center gap-2" dir="rtl">
+                    <span>
+                      {subscribing
+                        ? "جاري الاشتراك..."
+                        : isGranted
+                        ? "التحقق من الاشعارات"
+                        : "تفعيل الاشعارات الآن"}
+                    </span>
+                    <BellIcon className="h-6 w-6" />
+                  </div>
                 </Button>
               )}
 
               {/* Benefits List */}
               {!isDenied && (
-                <div className="bg-gray-50 rounded-xl p-6 space-y-3" dir="rtl">
-                  <h4 className="font-bold text-[#242E48] text-right mb-4">
+                <div className="bg-gray-50 rounded-xl p-6 space-y-4">
+                  <h4 className="font-bold text-[#242E48] text-right text-base" dir="rtl">
                     ماذا ستحصل عند التفعيل:
                   </h4>
-                  <ul className="space-y-2 text-right">
+                  <ul className="space-y-3 text-right" dir="rtl">
                     {[
                       "🎯 تحديثات فورية عن نتائج التصويت",
                       "📅 تذكيرات بمواعيد الفعاليات",
                       "🏆 إعلانات الفائزين مباشرة",
                       "💡 أخبار ومستجدات المجموعة",
                     ].map((benefit, index) => (
-                      <li key={index} className="flex items-center gap-2 text-gray-700 justify-end">
-                        <span>{benefit}</span>
+                      <li key={index} className="text-gray-700 text-sm leading-relaxed">
+                        {benefit}
                       </li>
                     ))}
                   </ul>
@@ -224,28 +229,26 @@ export function NotificationsSection() {
 
               {/* iOS Instructions */}
               {iosInstructions && (
-                <Card className="bg-[#4285F4]/5 border-[#4285F4]/20" dir="rtl">
-                  <CardHeader>
-                    <div className="flex items-center gap-2 justify-end">
-                      <CardTitle className="text-lg text-[#242E48]">
-                        تعليمات لمستخدمي آيفون
-                      </CardTitle>
-                      <SmartphoneIcon className="h-5 w-5 text-[#4285F4]" />
-                    </div>
-                  </CardHeader>
+                <div className="bg-[#4285F4]/5 border-2 border-[#4285F4]/20 rounded-xl p-6 space-y-4">
+                  <div className="flex items-center gap-2 justify-end" dir="rtl">
+                    <h4 className="text-lg text-[#242E48] font-bold">
+                      تعليمات لمستخدمي آيفون
+                    </h4>
+                    <SmartphoneIcon className="h-5 w-5 text-[#4285F4]" />
+                  </div>
 
-                  <CardContent className="text-gray-700 text-sm space-y-3 text-right">
-                    <p className="font-semibold text-[#242E48]">
+                  <div className="text-right space-y-3" dir="rtl">
+                    <p className="font-semibold text-[#242E48] text-sm">
                       لتفعيل الإشعارات على Safari (iOS):
                     </p>
-                    <ol className="list-decimal list-inside space-y-2 mr-4">
+                    <ol className="list-decimal list-inside space-y-2 text-gray-700 text-sm mr-4">
                       <li>اضغط على زر المشاركة (⬆️) في أسفل الشاشة</li>
                       <li>اختر "إضافة إلى الشاشة الرئيسية"</li>
                       <li>افتح التطبيق من الشاشة الرئيسية</li>
                       <li>اضغط "سماح" عند ظهور طلب الإشعارات</li>
                     </ol>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>
