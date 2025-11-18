@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * Next.js-compatible loader for OneSignal Web SDK v16
- * This version matches your current NotificationsSection.tsx
- */
-
 const ONE_SIGNAL_SDK_URL =
   "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.js";
 
@@ -13,7 +8,6 @@ export const ONESIGNAL_APP_ID =
 
 let oneSignalReady: Promise<any> | null = null;
 
-// Load SDK as <script>, because Next.js cannot import remote ESM modules
 function loadOneSignalScript() {
   if (document.getElementById("onesignal-sdk")) return;
 
@@ -41,11 +35,6 @@ async function waitForOneSignal() {
   return oneSignalReady;
 }
 
-// 🔵 PUBLIC API FUNCTIONS 🔵
-
-/**
- * Initialize OneSignal v16
- */
 export async function initOneSignal() {
   if (typeof window === "undefined") return;
 
@@ -67,22 +56,16 @@ export async function initOneSignal() {
   }
 }
 
-/**
- * Request browser notification permission
- */
 export async function subscribeToNotifications() {
   try {
     const OneSignal = await waitForOneSignal();
-    return await OneSignal.notifications.requestPermission();
+    return await OneSignal.notifications.requestPermission(); 
   } catch (err) {
     console.error("[OneSignal subscribe error]", err);
     return "default";
   }
 }
 
-/**
- * Get current browser notification permission
- */
 export async function getNotificationPermission() {
   try {
     const OneSignal = await waitForOneSignal();
@@ -92,9 +75,6 @@ export async function getNotificationPermission() {
   }
 }
 
-/**
- * Listen for subscription changes
- */
 export async function onSubscriptionChange(
   callback: (isSubscribed: boolean) => void
 ) {
@@ -108,9 +88,6 @@ export async function onSubscriptionChange(
   }
 }
 
-/**
- * Detect iOS devices for PWA instructions
- */
 export function isIOS() {
   if (typeof window === "undefined") return false;
   return /iPhone|iPad|iPod/.test(navigator.userAgent);
