@@ -39,15 +39,12 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   
-  /* G-Spark Brand Colors */
+  /* Simplified G-Spark Brand Colors */
   --gspark-dark: #242E48;
   --gspark-blue: #4285F4;
   --gspark-red: #EA4335;
   --gspark-green: #34A853;
   --gspark-yellow: #FBBC05;
-  --gspark-orange: #F4B46B;
-  --gspark-purple: #A112F4;
-  --gspark-pink: #FF4473;
 }
 
 .dark {
@@ -135,59 +132,43 @@
   }
 }
 
-/* Added gradient background animation */
-.gradient-bg {
-  background: linear-gradient(135deg, 
-    #4285F4 0%, 
-    #EA4335 25%, 
-    #FBBC05 50%, 
-    #34A853 75%, 
-    #4285F4 100%);
-  background-size: 400% 400%;
-  animation: gradient-shift 15s ease infinite;
-}
-
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* Updated gradient background for hero section */
+/* Removed complex gradient animations */
+/* Kept only simple, subtle effects */
 .hero-gradient {
-  background: linear-gradient(135deg, 
-    rgba(66, 133, 244, 0.3) 0%,
-    rgba(234, 67, 53, 0.3) 25%,
-    rgba(52, 168, 83, 0.3) 50%,
-    rgba(251, 188, 5, 0.3) 75%,
-    rgba(244, 180, 107, 0.3) 100%);
-  background-size: 200% 200%;
-  animation: gradient-float 20s ease-in-out infinite;
+  background: linear-gradient(180deg, 
+    rgba(66, 133, 244, 0.03) 0%,
+    rgba(255, 255, 255, 0) 100%);
 }
 
-@keyframes gradient-float {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-/* Added glass morphism effect */
+/* Simplified glass effect */
 .glass {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 /* Smooth scroll behavior */
 html {
   scroll-behavior: smooth;
+}
+
+/* Animate utilities */
+@keyframes slide-in-from-top {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+}
+
+.slide-in-from-top {
+  animation-name: slide-in-from-top;
 }

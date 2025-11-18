@@ -10,14 +10,14 @@ export default function HomePage() {
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
   return (
     <>
       <Navbar />
-      <main className="min-h-screen">
+      <main className="min-h-screen bg-white">
         <HeroSection
           onNotificationsClick={() => scrollToSection('notifications')}
           onVotingClick={() => scrollToSection('voting')}

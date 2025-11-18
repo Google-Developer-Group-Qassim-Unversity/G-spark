@@ -3,9 +3,8 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { BellIcon, TrophyIcon } from 'lucide-react';
+import { BellIcon, TrophyIcon, SparklesIcon, UsersIcon, CalendarIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { Calendar, Bell, TrendingUp } from 'lucide-react';
 
 interface HeroSectionProps {
   onNotificationsClick: () => void;
@@ -47,87 +46,148 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
   }, []);
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-white pt-20">
-      {/* Gradient Background - Positioned on the right/bottom */}
-      <div className="absolute right-0 bottom-0 w-1/2 h-3/4 hero-gradient opacity-60 blur-3xl" />
-      
+    <section className="relative min-h-screen flex items-center overflow-hidden bg-white pt-28 pb-20">
+      {/* Simplified Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 right-20 w-96 h-96 bg-[#4285F4]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 left-20 w-96 h-96 bg-[#EA4335]/5 rounded-full blur-3xl" />
+      </div>
+
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 lg:px-12 py-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left side - Logo, Text, and Buttons */}
-          <div className="space-y-8">
-            {/* Logo */}
-            <div className="flex justify-start">
+        <div className="max-w-7xl mx-auto">
+          {/* Logo and Title Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <div className="flex justify-center mb-8">
               <Image
                 src="/images/design-mode/logo-without_bg.png"
                 alt="G-Spark Logo"
-                width={600}
-                height={200}
-                className="w-full max-w-md animate-fade-in"
+                width={500}
+                height={150}
+                className="w-full max-w-lg"
                 priority
               />
             </div>
-
-            {/* Tagline */}
-            <h2 
-              className="text-2xl md:text-3xl lg:text-4xl font-bold text-[var(--gspark-dark)] text-balance animate-fade-in-up" 
-            >
+            
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-[#242E48] mb-6">
               حفل ختام انشطة مجموعة قوقل للطلبة المطورين
-            </h2>
+            </h1>
+            
+            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+              انضم إلينا في احتفالية استثنائية تجمع الابتكار والإبداع التقني
+            </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up animation-delay-200">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button
                 size="lg"
                 onClick={onNotificationsClick}
-                className="bg-[var(--gspark-blue)] text-white hover:bg-[var(--gspark-blue)]/90 font-bold text-base md:text-lg px-8 py-6 rounded-xl shadow-lg transition-transform hover:scale-105"
+                className="bg-[#4285F4] text-white hover:bg-[#4285F4]/90 font-bold text-lg px-10 py-7 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
               >
-                <BellIcon className="ml-2 h-5 w-5" />
+                <BellIcon className="ml-2 h-6 w-6" />
                 فعل الاشعارات
               </Button>
               <Button
                 size="lg"
                 onClick={onVotingClick}
-                className="bg-[var(--gspark-purple)] text-white hover:bg-[var(--gspark-purple)]/90 font-bold text-base md:text-lg px-8 py-6 rounded-xl shadow-lg transition-transform hover:scale-105"
+                className="bg-[#EA4335] text-white hover:bg-[#EA4335]/90 font-bold text-lg px-10 py-7 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
               >
-                <TrophyIcon className="ml-2 h-5 w-5" />
+                <TrophyIcon className="ml-2 h-6 w-6" />
                 صوت لفريق
               </Button>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Right side - Countdown in bottom right */}
+          {/* Countdown Timer */}
           <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="mb-12"
-        >
-          <div className="grid grid-cols-4 gap-4 max-w-2xl mx-auto">
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="mb-20"
+          >
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-bold text-[#242E48] mb-2 flex items-center justify-center gap-2">
+                <CalendarIcon className="h-6 w-6 text-[#4285F4]" />
+                العد التنازلي للحدث
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+              {[
+                { label: 'Days', value: timeLeft.days, label_ar: 'يوم' },
+                { label: 'Hours', value: timeLeft.hours, label_ar: 'ساعة' },
+                { label: 'Minutes', value: timeLeft.minutes, label_ar: 'دقيقة' },
+                { label: 'Seconds', value: timeLeft.seconds, label_ar: 'ثانية' },
+              ].map((item, index) => (
+                <motion.div
+                  key={item.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
+                  className="relative group"
+                >
+                  <div className="relative bg-white rounded-2xl p-6 md:p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                    <div className="text-5xl md:text-6xl font-bold text-[#4285F4] mb-2">
+                      {String(item.value).padStart(2, '0')}
+                    </div>
+                    <div className="text-sm md:text-base text-gray-600 font-semibold">
+                      {item.label}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">{item.label_ar}</div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Feature Cards */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto"
+          >
             {[
-              { label: 'Days', value: timeLeft.days, label_ar: 'يوم' },
-              { label: 'Hours', value: timeLeft.hours, label_ar: 'ساعة' },
-              { label: 'Minutes', value: timeLeft.minutes, label_ar: 'دقيقة' },
-              { label: 'Seconds', value: timeLeft.seconds, label_ar: 'ثانية' },
-            ].map((item, index) => (
+              {
+                icon: <SparklesIcon className="h-8 w-8" />,
+                title: 'مشاريع مبتكرة',
+                description: 'استعرض أفضل المشاريع التقنية المقدمة من الطلاب',
+                color: '#4285F4',
+              },
+              {
+                icon: <TrophyIcon className="h-8 w-8" />,
+                title: 'تصويت تفاعلي',
+                description: 'شارك في اختيار أفضل مشروع وساهم في تحديد الفائزين',
+                color: '#EA4335',
+              },
+              {
+                icon: <UsersIcon className="h-8 w-8" />,
+                title: 'تواصل مجتمعي',
+                description: 'تعرف على المطورين والمبتكرين في مجتمع التقنية',
+                color: '#34A853',
+              },
+            ].map((feature, index) => (
               <motion.div
-                key={item.label}
+                key={index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
-                className="bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl"
+                transition={{ duration: 0.5, delay: 0.7 + index * 0.1 }}
+                className="group relative"
               >
-                <div className="text-4xl md:text-5xl font-bold text-[#4285F4] mb-2">
-                  {String(item.value).padStart(2, '0')}
+                <div className="relative bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+                  <div className="inline-flex p-3 rounded-xl mb-4" style={{ backgroundColor: feature.color }}>
+                    <div className="text-white">{feature.icon}</div>
+                  </div>
+                  <h3 className="text-xl font-bold text-[#242E48] mb-2">{feature.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
                 </div>
-                <div className="text-sm md:text-base text-gray-600 font-medium">
-                  {item.label}
-                </div>
-                <div className="text-xs text-gray-500 mt-1 arabic-text">{item.label_ar}</div>
               </motion.div>
             ))}
-          </div>
-        </motion.div>
+          </motion.div>
         </div>
       </div>
     </section>

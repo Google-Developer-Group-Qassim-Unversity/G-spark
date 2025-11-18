@@ -9,17 +9,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
 import {
   BellIcon,
   CheckCircle2Icon,
   AlertCircleIcon,
   SmartphoneIcon,
   XCircleIcon,
+  BellRingIcon,
 } from "lucide-react";
-
 import {
   initOneSignal,
   subscribeToNotifications,
@@ -29,7 +27,6 @@ import {
 
 type PermissionStatus = "granted" | "denied" | "default";
 
-// كشف آيفون + سفاري
 function isIOSSafari(): boolean {
   if (typeof window === "undefined") return false;
 
@@ -93,7 +90,6 @@ export function NotificationsSection() {
 
     try {
       await subscribeToNotifications();
-
       await new Promise((r) => setTimeout(r, 100));
       await checkStatus();
     } catch (err) {
@@ -109,102 +105,151 @@ export function NotificationsSection() {
   return (
     <section
       id="notifications"
-      dir="rtl"
-      className="min-h-screen flex items-center justify-center py-20 bg-gradient-to-br from-[var(--gspark-dark)] to-[var(--gspark-blue)]"
+      className="min-h-screen flex items-center justify-center py-20 bg-gradient-to-br from-white to-gray-50"
     >
       <div className="container mx-auto px-4">
-        <Card className="max-w-2xl mx-auto glass border-white/20 shadow-2xl">
-          <CardHeader className="text-center">
+        <div className="max-w-2xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-12">
             <div className="flex justify-center mb-4">
-              <BellIcon className="h-16 w-16 text-[var(--gspark-blue)]" />
-            </div>
-
-            <CardTitle className="text-3xl md:text-4xl font-bold text-white mb-2">
-              فعل الاشعارات
-            </CardTitle>
-
-            <CardDescription className="text-lg text-white/80">
-              فعل الاشعارات للحصول على التحديثات
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="space-y-6 text-right">
-            <Alert
-              className={`${
-                isGranted
-                  ? "bg-[var(--gspark-green)]/20 border-[var(--gspark-green)]"
-                  : isDenied
-                  ? "bg-[var(--gspark-red)]/20 border-[var(--gspark-red)]"
-                  : "bg-white/10 border-white/20"
-              }`}
-            >
-              <div className="flex items-center gap-3 flex-row-reverse">
-                {isGranted ? (
-                  <CheckCircle2Icon className="h-5 w-5 text-[var(--gspark-green)]" />
-                ) : isDenied ? (
-                  <XCircleIcon className="h-5 w-5 text-[var(--gspark-red)]" />
-                ) : (
-                  <AlertCircleIcon className="h-5 w-5 text-[var(--gspark-yellow)]" />
-                )}
-
-                <AlertDescription className="text-white font-medium">
-                  {isGranted
-                    ? "تم تفعيل الاشعارات!"
-                    : isDenied
-                    ? "تم ايقاف الاشعارات من قبل المتصفح الخاص بك 😞"
-                    : "لم تقم بتفعيل الاشعارات😒"}
-                </AlertDescription>
+              <div className="bg-[#4285F4] p-4 rounded-2xl shadow-lg">
+                <BellRingIcon className="h-16 w-16 text-white" />
               </div>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-[#242E48] mb-3" dir="rtl">
+              فعل الاشعارات
+            </h2>
+            <p className="text-lg text-gray-600" dir="rtl">
+              احصل على تحديثات فورية حول الفعاليات والنتائج
+            </p>
+          </div>
 
-              {isDenied && (
-                <p className="text-white/80 mt-2 text-sm">
-                  يجب ان تقوم بالغاء الحظر من المتصفح لكي تتمكن من تفعيل 
-                  الاشعارات مجددا.
-                </p>
-              )}
-            </Alert>
+          {/* Main Card */}
+          <Card className="shadow-xl border border-gray-200 bg-white">
+            <CardHeader>
+              <CardTitle className="text-2xl text-[#242E48] text-center" dir="rtl">
+                إشعارات الحدث
+              </CardTitle>
+              <CardDescription className="text-gray-600 text-center" dir="rtl">
+                ابقَ على اطلاع بآخر المستجدات
+              </CardDescription>
+            </CardHeader>
 
-            {!isDenied && (
-              <Button
-                size="lg"
-                disabled={subscribing}
-                onClick={handleSubscribe}
-                className="w-full bg-[var(--gspark-blue)] hover:bg-[var(--gspark-blue)]/90 text-white font-bold text-lg py-6 rounded-xl shadow-lg"
+            <CardContent className="space-y-6">
+              {/* Status Alert */}
+              <Alert
+                className={`${
+                  isGranted
+                    ? "bg-[#34A853]/10 border-[#34A853]"
+                    : isDenied
+                    ? "bg-[#EA4335]/10 border-[#EA4335]"
+                    : "bg-[#FBBC05]/10 border-[#FBBC05]"
+                } transition-all duration-300`}
               >
-                {subscribing
-                  ? "الاشتراك بالاشعارات..."
-                  : isGranted
-                  ? "التحقق من الاشعارات"
-                  : "تفعيل الاشعارات"}
-              </Button>
-            )}
+                <div className="flex items-start gap-3 flex-row-reverse">
+                  {isGranted ? (
+                    <CheckCircle2Icon className="h-6 w-6 text-[#34A853] shrink-0 mt-0.5" />
+                  ) : isDenied ? (
+                    <XCircleIcon className="h-6 w-6 text-[#EA4335] shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertCircleIcon className="h-6 w-6 text-[#FBBC05] shrink-0 mt-0.5" />
+                  )}
 
-            {iosInstructions && (
-              <Card className="bg-white/10 border-white/20">
-                <CardHeader>
-                  <div className="flex items-center gap-2 flex-row-reverse">
-                    <SmartphoneIcon className="h-5 w-5 text-[var(--gspark-yellow)]" />
-                    <CardTitle className="text-lg text-white">
-                      لمستخدمين الايفون
-                    </CardTitle>
+                  <div className="flex-1 text-right" dir="rtl">
+                    <AlertDescription className="text-[#242E48] font-semibold text-right leading-relaxed">
+                      {isGranted
+                        ? "✅ تم تفعيل الاشعارات بنجاح!"
+                        : isDenied
+                        ? "⚠️ الاشعارات محظورة"
+                        : "📢 لم يتم تفعيل الاشعارات بعد"}
+                    </AlertDescription>
+
+                    {isDenied && (
+                      <p className="text-gray-600 mt-2 text-sm text-right leading-relaxed">
+                        يرجى إلغاء حظر الإشعارات من إعدادات المتصفح لتتمكن من تفعيلها مجدداً
+                      </p>
+                    )}
+
+                    {!isGranted && !isDenied && (
+                      <p className="text-gray-600 mt-2 text-sm text-right leading-relaxed">
+                        فعّل الإشعارات للحصول على التحديثات الفورية
+                      </p>
+                    )}
                   </div>
-                </CardHeader>
+                </div>
+              </Alert>
 
-                <CardContent className="text-white/80 text-sm space-y-2 text-right">
-                  <p className="font-semibold text-white">
-                    لتفعيل الاشعارات عبر الايفون:
-                  </p>
-                  <ol className="list-decimal list-inside space-y-1 mr-2">
-                    <li> الضغط على زر المشاركة</li>
-                    <li>اضغط على اضافة الى الصفحة الرئيسية </li>
-                    <li>قم بفتح التطبيق عبر الصفحة الرئيسية</li>
-                    <li>اضغط السماح بالاشعارات</li>
-                  </ol>
-                </CardContent>
-              </Card>
-            )}
-          </CardContent>
-        </Card>
+              {/* Action Button */}
+              {!isDenied && (
+                <Button
+                  size="lg"
+                  disabled={subscribing}
+                  onClick={handleSubscribe}
+                  className={`w-full font-bold text-lg py-7 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ${
+                    isGranted
+                      ? "bg-[#34A853] hover:bg-[#34A853]/90"
+                      : "bg-[#4285F4] hover:bg-[#4285F4]/90"
+                  } text-white hover:scale-105`}
+                  dir="rtl"
+                >
+                  <BellIcon className="mr-2 h-6 w-6" />
+                  {subscribing
+                    ? "جاري الاشتراك..."
+                    : isGranted
+                    ? "التحقق من الاشعارات"
+                    : "تفعيل الاشعارات الآن"}
+                </Button>
+              )}
+
+              {/* Benefits List */}
+              {!isDenied && (
+                <div className="bg-gray-50 rounded-xl p-6 space-y-3" dir="rtl">
+                  <h4 className="font-bold text-[#242E48] text-right mb-4">
+                    ماذا ستحصل عند التفعيل:
+                  </h4>
+                  <ul className="space-y-2 text-right">
+                    {[
+                      "🎯 تحديثات فورية عن نتائج التصويت",
+                      "📅 تذكيرات بمواعيد الفعاليات",
+                      "🏆 إعلانات الفائزين مباشرة",
+                      "💡 أخبار ومستجدات المجموعة",
+                    ].map((benefit, index) => (
+                      <li key={index} className="flex items-center gap-2 text-gray-700 justify-end">
+                        <span>{benefit}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* iOS Instructions */}
+              {iosInstructions && (
+                <Card className="bg-[#4285F4]/5 border-[#4285F4]/20" dir="rtl">
+                  <CardHeader>
+                    <div className="flex items-center gap-2 justify-end">
+                      <CardTitle className="text-lg text-[#242E48]">
+                        تعليمات لمستخدمي آيفون
+                      </CardTitle>
+                      <SmartphoneIcon className="h-5 w-5 text-[#4285F4]" />
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="text-gray-700 text-sm space-y-3 text-right">
+                    <p className="font-semibold text-[#242E48]">
+                      لتفعيل الإشعارات على Safari (iOS):
+                    </p>
+                    <ol className="list-decimal list-inside space-y-2 mr-4">
+                      <li>اضغط على زر المشاركة (⬆️) في أسفل الشاشة</li>
+                      <li>اختر "إضافة إلى الشاشة الرئيسية"</li>
+                      <li>افتح التطبيق من الشاشة الرئيسية</li>
+                      <li>اضغط "سماح" عند ظهور طلب الإشعارات</li>
+                    </ol>
+                  </CardContent>
+                </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </section>
   );
