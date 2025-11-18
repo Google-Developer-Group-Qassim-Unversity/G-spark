@@ -9,7 +9,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
+
 import {
   BellIcon,
   CheckCircle2Icon,
@@ -37,8 +39,7 @@ export function NotificationsSection() {
     try {
       const perm = await getNotificationPermission();
       setPermission(perm as PermissionStatus);
-    } catch (err) {
-      console.error("Permission error:", err);
+    } catch {
       setPermission("default");
     }
   }, []);
@@ -62,6 +63,7 @@ export function NotificationsSection() {
     if (subscribing) return;
 
     setSubscribing(true);
+
     try {
       await subscribeToNotifications();
     } catch (err) {
@@ -86,9 +88,11 @@ export function NotificationsSection() {
             <div className="flex justify-center mb-4">
               <BellIcon className="h-16 w-16 text-[var(--gspark-blue)]" />
             </div>
+
             <CardTitle className="text-3xl md:text-4xl font-bold text-white mb-2">
               Enable Notifications
             </CardTitle>
+
             <CardDescription
               className="text-lg text-white/80"
               style={{ direction: "rtl" }}
@@ -158,6 +162,7 @@ export function NotificationsSection() {
                     </CardTitle>
                   </div>
                 </CardHeader>
+
                 <CardContent className="text-white/80 text-sm space-y-2">
                   <p className="font-semibold text-white">
                     To enable notifications on iPhone:
