@@ -35,16 +35,13 @@ export function NotificationsSection() {
   const [subscribing, setSubscribing] = useState(false);
   const [iosInstructions, setIosInstructions] = useState(false);
 
-  /* -----------------------------------------------
-     Check both browser permission + OneSignal status
-  ----------------------------------------------- */
   const checkStatus = useCallback(async () => {
     try {
-      const { permission, isSubscribed } = await getSubscriptionInfo();
+      const { permission } = await getSubscriptionInfo();
 
       if (permission === "denied") {
         setPermission("denied");
-      } else if (permission === "granted" && isSubscribed) {
+      } else if (permission === "granted") {
         setPermission("granted");
       } else {
         setPermission("default");
@@ -55,17 +52,15 @@ export function NotificationsSection() {
     }
   }, []);
 
-  /* -----------------------------------------------
-     Initialize OneSignal on mount
-  ----------------------------------------------- */
   useEffect(() => {
     const run = async () => {
       await initOneSignal();
       await checkStatus();
 
-      // Subscribe to subscription changes
-      await onSubscriptionChange(() => {
-        checkStatus();
+      await onSubscriptionChange((perm) => {
+        if (perm === "denied") setPermission("denied");
+        else if (perm === "granted") setPermission("granted");
+        else setPermission("default");
       });
 
       setIosInstructions(isIOS());
@@ -74,9 +69,6 @@ export function NotificationsSection() {
     run();
   }, [checkStatus]);
 
-  /* -----------------------------------------------
-     Handle subscribe button
-  ----------------------------------------------- */
   async function handleSubscribe() {
     if (subscribing) return;
 
@@ -85,9 +77,8 @@ export function NotificationsSection() {
     try {
       await subscribeToNotifications();
 
-      // small delay so OneSignal updates optedIn state
-      await new Promise((r) => setTimeout(r, 150));
-
+      // ما نحتاج نطارد OneSignal، نقرأ من Notification.permission
+      await new Promise((r) => setTimeout(r, 100));
       await checkStatus();
     } catch (err) {
       console.error("Subscribe error:", err);
