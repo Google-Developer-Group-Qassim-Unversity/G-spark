@@ -64,7 +64,6 @@ export async function initOneSignal() {
 export async function subscribeToNotifications() {
   try {
     const OneSignal = await waitForSDK();
-    // Returns a boolean in v16 (true if permission granted)
     const result = await OneSignal.Notifications.requestPermission();
     return result;
   } catch (err) {
@@ -88,6 +87,7 @@ export async function getNotificationPermission(): Promise<NotificationPermissio
    Combined status for UI:
    - browser permission
    - OneSignal subscription (optedIn)
+   Use getSubscription() to avoid stale state.
 ----------------------------------------- */
 export async function getSubscriptionInfo(): Promise<{
   permission: NotificationPermission;
@@ -102,7 +102,14 @@ export async function getSubscriptionInfo(): Promise<{
   const permission: NotificationPermission =
     "Notification" in window ? Notification.permission : "default";
 
-  const isSubscribed = !!OneSignal.User?.PushSubscription?.optedIn;
+  let isSubscribed = false;
+
+  try {
+    const subscription = await OneSignal.User.PushSubscription.getSubscription();
+    isSubscribed = !!subscription?.optedIn;
+  } catch (e) {
+    console.error("[getSubscriptionInfo] getSubscription error", e);
+  }
 
   return {
     permission,
@@ -111,8 +118,9 @@ export async function getSubscriptionInfo(): Promise<{
 }
 
 /* ----------------------------------------
-   Listen for subscription changes
-   (v16: User.PushSubscription "change" event)
+   Listen for subscription changes.
+   Use getSubscription() inside the handler
+   so desktop Chrome gets fresh state.
 ----------------------------------------- */
 export async function onSubscriptionChange(
   callback: (isSubscribed: boolean) => void
@@ -124,9 +132,15 @@ export async function onSubscriptionChange(
 
     OneSignal.User.PushSubscription.addEventListener(
       "change",
-      (event: any) => {
-        const isSubscribed = !!event?.current?.optedIn;
-        callback(isSubscribed);
+      async () => {
+        try {
+          const sub = await OneSignal.User.PushSubscription.getSubscription();
+          const isSubscribed = !!sub?.optedIn;
+          callback(isSubscribed);
+        } catch (e) {
+          console.error("[subscriptionChange listener] getSubscription error", e);
+          callback(false);
+        }
       }
     );
   } catch (err) {
