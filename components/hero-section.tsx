@@ -47,10 +47,64 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-white pt-28 pb-20">
-      {/* Simplified Background */}
+      {/* Enhanced Background with Decorative Blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Existing subtle gradient blobs */}
         <div className="absolute top-20 right-20 w-96 h-96 bg-[#4285F4]/5 rounded-full blur-3xl" />
         <div className="absolute bottom-20 left-20 w-96 h-96 bg-[#EA4335]/5 rounded-full blur-3xl" />
+        
+        {/* New decorative floating blobs - adjusted for mobile */}
+        <motion.div 
+          className="absolute top-32 left-2 md:left-16 w-32 h-32 md:w-64 md:h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-30"
+          animate={{ 
+            y: [0, -20, 0],
+            x: [0, 10, 0],
+          }}
+          transition={{ 
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div 
+          className="absolute top-48 right-2 md:right-20 w-28 h-28 md:w-56 md:h-56 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-30"
+          animate={{ 
+            y: [0, 25, 0],
+            x: [0, -15, 0],
+          }}
+          transition={{ 
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
+        />
+        <motion.div 
+          className="absolute bottom-40 left-4 md:left-1/4 w-28 h-28 md:w-48 md:h-48 bg-[#34A853]/40 rounded-full mix-blend-multiply filter blur-xl opacity-25"
+          animate={{ 
+            y: [0, -30, 0],
+            x: [0, 20, 0],
+          }}
+          transition={{ 
+            duration: 12,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2
+          }}
+        />
+        <motion.div 
+          className="absolute bottom-24 right-4 md:right-1/3 w-24 h-24 md:w-44 md:h-44 bg-[#EA4335]/40 rounded-full mix-blend-multiply filter blur-xl opacity-25"
+          animate={{ 
+            y: [0, 20, 0],
+            x: [0, -10, 0],
+          }}
+          transition={{ 
+            duration: 9,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1.5
+          }}
+        />
       </div>
 
       {/* Content */}
