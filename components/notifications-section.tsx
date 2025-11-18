@@ -29,19 +29,22 @@ import {
 
 type PermissionStatus = "granted" | "denied" | "default";
 
-// كشف الآيفون حتى لو المتصفح مغير الـ userAgent (وضع سطح المكتب)
-function detectIOS(): boolean {
+// كشف آيفون + سفاري
+function isIOSSafari(): boolean {
   if (typeof window === "undefined") return false;
 
   const ua = window.navigator.userAgent || "";
-  const platform = (window.navigator as any).platform || "";
   const maxTouchPoints = (window.navigator as any).maxTouchPoints || 0;
 
-  const iOSByUA = /iPhone|iPad|iPod/.test(ua);
-  const iOSDesktopMode =
-    /Macintosh/.test(ua) && maxTouchPoints > 1; // iPad/iPhone مع "طلب موقع سطح المكتب"
+  const isIOSDevice =
+    /iPhone|iPad|iPod/.test(ua) ||
+    (/Macintosh/.test(ua) && maxTouchPoints > 1);
 
-  return iOSByUA || iOSDesktopMode || /iPhone|iPad|iPod/.test(platform);
+  const isSafari =
+    /Safari/.test(ua) &&
+    !/Chrome|CriOS|FxiOS|OPiOS|EdgiOS/.test(ua);
+
+  return isIOSDevice && isSafari;
 }
 
 export function NotificationsSection() {
@@ -77,7 +80,7 @@ export function NotificationsSection() {
         else setPermission("default");
       });
 
-      setIosInstructions(detectIOS());
+      setIosInstructions(isIOSSafari());
     };
 
     run();
@@ -187,13 +190,13 @@ export function NotificationsSection() {
                   </div>
                 </CardHeader>
 
-                <CardContent className="text-white/80 text-sm space-y-2">
+                <CardContent className="text-white/80 text-sm space-y-2 text-right">
                   <p className="font-semibold text-white">
                     لتفعيل الاشعارات عبر الايفون:
                   </p>
                   <ol className="list-decimal list-inside space-y-1 mr-2">
-                    <li>الضغط على زر المشاركة</li>
-                    <li>اضغط على اضافة الى الصفحة الرئيسية</li>
+                    <li> الضغط على زر المشاركة</li>
+                    <li>اضغط على اضافة الى الصفحة الرئيسية </li>
                     <li>قم بفتح التطبيق عبر الصفحة الرئيسية</li>
                     <li>اضغط السماح بالاشعارات</li>
                   </ol>
