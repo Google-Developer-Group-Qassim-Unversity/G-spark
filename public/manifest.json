@@ -1,0 +1,17 @@
+{
+  "name": "G-Spark Conference",
+  "short_name": "G-Spark",
+  "description": "حفل ختام انشطة مجموعة قوقل للطلبة المطورين",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#242E48",
+  "theme_color": "#4285F4",
+  "icons": [
+    {
+      "src": "/logo-gspark.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
