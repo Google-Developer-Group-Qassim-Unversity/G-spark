@@ -23,42 +23,72 @@ import {
 import {
   initOneSignal,
   subscribeToNotifications,
-  getNotificationPermission,
   isIOS,
-  onSubscriptionChange,
 } from "@/lib/onesignal";
 
 type PermissionStatus = "granted" | "denied" | "default";
+
+/* -----------------------------------------------
+   Helper: Get REAL OneSignal subscription status
+----------------------------------------------- */
+async function getFullSubscriptionStatus() {
+  const OneSignal = (window as any).OneSignal;
+  if (!OneSignal) return { permission: "default", isSubscribed: false };
+
+  const permission = await OneSignal.Notifications.getPermission();
+  const isSubscribed = OneSignal.User.PushSubscription.optedIn;
+
+  return { permission, isSubscribed };
+}
 
 export function NotificationsSection() {
   const [permission, setPermission] = useState<PermissionStatus>("default");
   const [subscribing, setSubscribing] = useState(false);
   const [iosInstructions, setIosInstructions] = useState(false);
 
-  const checkPermission = useCallback(async () => {
+  /* -----------------------------------------------
+     Check both browser permission + OneSignal status
+  ----------------------------------------------- */
+  const checkStatus = useCallback(async () => {
     try {
-      const perm = await getNotificationPermission();
-      setPermission(perm as PermissionStatus);
+      const { permission, isSubscribed } = await getFullSubscriptionStatus();
+
+      if (permission === "denied") {
+        setPermission("denied");
+      } else if (permission === "granted" && isSubscribed) {
+        setPermission("granted");
+      } else {
+        setPermission("default");
+      }
     } catch {
       setPermission("default");
     }
   }, []);
 
+  /* -----------------------------------------------
+     Initialize OneSignal on mount
+  ----------------------------------------------- */
   useEffect(() => {
     const run = async () => {
       await initOneSignal();
-      await checkPermission();
+      await checkStatus();
 
-      onSubscriptionChange(() => {
-        checkPermission();
+      // Subscribe to OneSignal events
+      const OneSignal = (window as any).OneSignal;
+
+      OneSignal?.User?.addEventListener("subscriptionChange", () => {
+        checkStatus();
       });
 
       setIosInstructions(isIOS());
     };
 
     run();
-  }, [checkPermission]);
+  }, [checkStatus]);
 
+  /* -----------------------------------------------
+     Handle subscribe click
+  ----------------------------------------------- */
   async function handleSubscribe() {
     if (subscribing) return;
 
@@ -66,10 +96,10 @@ export function NotificationsSection() {
 
     try {
       await subscribeToNotifications();
+      await checkStatus();
     } catch (err) {
       console.error("Subscribe error:", err);
     } finally {
-      await checkPermission();
       setSubscribing(false);
     }
   }
