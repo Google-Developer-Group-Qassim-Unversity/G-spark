@@ -1,45 +1,81 @@
+// src/components/NotificationsSection.tsx
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { BellIcon, CheckCircle2Icon, AlertCircleIcon, SmartphoneIcon } from 'lucide-react';
-import { initOneSignal, subscribeToNotifications, getNotificationPermission, isIOS } from '@/lib/onesignal';
+// Note: Imported XCircleIcon for denied state
+import { BellIcon, CheckCircle2Icon, AlertCircleIcon, SmartphoneIcon, XCircleIcon } from 'lucide-react'; 
+// ⭐️ IMPORTANT: Import onSubscriptionChange for instant UI updates
+import { initOneSignal, subscribeToNotifications, getNotificationPermission, isIOS, onSubscriptionChange } from '@/lib/onesignal'; 
+
+// Define the precise type for the permission status from the SDK
+type PermissionStatus = 'granted' | 'denied' | 'default';
 
 export function NotificationsSection() {
-  const [permission, setPermission] = useState<string>('default');
+  // Use the type-safe union type for permission state
+  const [permission, setPermission] = useState<PermissionStatus>('default'); 
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
 
-  useEffect(() => {
-    initOneSignal();
-    
-    const checkPermission = async () => {
+  // Memoized function to check and set permission status
+  const checkPermission = useCallback(async () => {
+    try {
       const perm = await getNotificationPermission();
-      setPermission(perm);
-    };
-    
-    checkPermission();
-    const interval = setInterval(checkPermission, 1000);
-    
-    setShowIOSInstructions(isIOS());
-    
-    return () => clearInterval(interval);
+      setPermission(perm as PermissionStatus); 
+    } catch (error) {
+      console.error('Failed to get notification permission:', error);
+      setPermission('default');
+    }
   }, []);
 
+  // 1. Initialization, Initial Check, and Event Listener Setup
+  useEffect(() => {
+    initOneSignal(); 
+    checkPermission(); // Get initial status once.
+
+    // ⭐️ FIX: Set up the highly reliable event listener (removes setInterval)
+    const updateUiOnSubscriptionChange = () => {
+        checkPermission();
+    };
+    
+    // Register the listener
+    onSubscriptionChange(updateUiOnSubscriptionChange);
+
+    // Set iOS instructions flag
+    setShowIOSInstructions(isIOS());
+
+    // 🛑 The cleanup for the old setInterval is no longer needed in this structure.
+    
+  }, [checkPermission]); // We keep checkPermission in dependencies as it's a stable, memoized function.
+
+
   const handleSubscribe = async () => {
+    // Prevent action if already running or permission is granted/denied
+    if (isSubscribing || permission === 'granted' || permission === 'denied') return;
+
     setIsSubscribing(true);
+    
     try {
+      // Trigger the prompt. The UI update is now handled instantly by the listener in useEffect.
       await subscribeToNotifications();
-      const newPermission = await getNotificationPermission();
-      setPermission(newPermission);
+
     } catch (error) {
-      console.error('[v0] Subscription failed:', error);
+      console.error('[OneSignal] Subscription failed:', error);
     } finally {
+      // Perform a final check to ensure the UI updates on failure
+      await checkPermission(); 
       setIsSubscribing(false);
     }
   };
+
+
+  // --- UI Variables ---
+  const isGranted = permission === 'granted';
+  const isDenied = permission === 'denied';
+  const buttonDisabled = isSubscribing || isGranted || isDenied;
 
   return (
     <section id="notifications" className="min-h-screen flex items-center justify-center py-20 bg-gradient-to-br from-[var(--gspark-dark)] to-[var(--gspark-blue)]">
@@ -58,32 +94,43 @@ export function NotificationsSection() {
           </CardHeader>
           
           <CardContent className="space-y-6">
-            {/* Status */}
+            {/* Status Alert */}
             <Alert className={`${
-              permission === 'granted' 
+              isGranted 
                 ? 'bg-[var(--gspark-green)]/20 border-[var(--gspark-green)]' 
-                : 'bg-white/10 border-white/20'
+                : isDenied 
+                  ? 'bg-[var(--gspark-red)]/20 border-[var(--gspark-red)]'
+                  : 'bg-white/10 border-white/20'
             }`}>
               <div className="flex items-center gap-3">
-                {permission === 'granted' ? (
+                {isGranted ? (
                   <CheckCircle2Icon className="h-5 w-5 text-[var(--gspark-green)]" />
+                ) : isDenied ? (
+                  <XCircleIcon className="h-5 w-5 text-[var(--gspark-red)]" />
                 ) : (
                   <AlertCircleIcon className="h-5 w-5 text-[var(--gspark-yellow)]" />
                 )}
                 <AlertDescription className="text-white font-medium">
-                  {permission === 'granted' 
+                  {isGranted 
                     ? '✅ Notifications are enabled!' 
-                    : '⚠️ Notifications are not enabled'}
+                    : isDenied
+                      ? '❌ Notifications are blocked by your browser settings.'
+                      : '⚠️ Notifications are not enabled'}
                 </AlertDescription>
               </div>
+              {isDenied && (
+                <p className="text-white/80 mt-2 text-sm">
+                  To subscribe, you must manually change permission settings for this site in your browser (e.g., Chrome Settings Security and Privacy).
+                </p>
+              )}
             </Alert>
 
-            {/* Subscribe Button */}
-            {permission !== 'granted' && (
+            {/* Subscribe Button (Only visible if not granted or denied) */}
+            {!isGranted && !isDenied && (
               <Button
                 size="lg"
                 onClick={handleSubscribe}
-                disabled={isSubscribing}
+                disabled={buttonDisabled}
                 className="w-full bg-[var(--gspark-blue)] hover:bg-[var(--gspark-blue)]/90 text-white font-bold text-lg py-6 rounded-xl shadow-lg"
               >
                 {isSubscribing ? 'Subscribing...' : 'Enable Push Notifications'}
@@ -104,9 +151,9 @@ export function NotificationsSection() {
                 <CardContent className="text-white/80 text-sm space-y-2">
                   <p className="font-semibold text-white">To enable notifications on iPhone:</p>
                   <ol className="list-decimal list-inside space-y-1 ml-2">
-                    <li>Tap the <strong>Share</strong> button (square with arrow)</li>
-                    <li>Scroll down and select <strong>{"Add to Home Screen"}</strong></li>
-                    <li>Tap <strong>Add</strong> in the top right</li>
+                    <li>Tap the **Share** button (square with arrow) </li>
+                    <li>Scroll down and select **{"Add to Home Screen"}**</li>
+                    <li>Tap **Add** in the top right</li>
                     <li>Open the app from your home screen</li>
                     <li>Allow notifications when prompted</li>
                   </ol>
