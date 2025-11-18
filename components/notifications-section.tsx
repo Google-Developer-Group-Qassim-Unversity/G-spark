@@ -24,34 +24,20 @@ import {
   initOneSignal,
   subscribeToNotifications,
   isIOS,
+  getSubscriptionInfo,
+  onSubscriptionChange,
 } from "@/lib/onesignal";
 
 type PermissionStatus = "granted" | "denied" | "default";
-
-/* -----------------------------------------------
-   Helper: Get REAL OneSignal subscription status
------------------------------------------------ */
-async function getFullSubscriptionStatus() {
-  const OneSignal = (window as any).OneSignal;
-  if (!OneSignal) return { permission: "default", isSubscribed: false };
-
-  const permission = await OneSignal.Notifications.getPermission();
-  const isSubscribed = OneSignal.User.PushSubscription.optedIn;
-
-  return { permission, isSubscribed };
-}
 
 export function NotificationsSection() {
   const [permission, setPermission] = useState<PermissionStatus>("default");
   const [subscribing, setSubscribing] = useState(false);
   const [iosInstructions, setIosInstructions] = useState(false);
 
-  /* -----------------------------------------------
-     Check both browser permission + OneSignal status
-  ----------------------------------------------- */
   const checkStatus = useCallback(async () => {
     try {
-      const { permission, isSubscribed } = await getFullSubscriptionStatus();
+      const { permission, isSubscribed } = await getSubscriptionInfo();
 
       if (permission === "denied") {
         setPermission("denied");
@@ -65,18 +51,12 @@ export function NotificationsSection() {
     }
   }, []);
 
-  /* -----------------------------------------------
-     Initialize OneSignal on mount
-  ----------------------------------------------- */
   useEffect(() => {
     const run = async () => {
       await initOneSignal();
       await checkStatus();
 
-      // Subscribe to OneSignal events
-      const OneSignal = (window as any).OneSignal;
-
-      OneSignal?.User?.addEventListener("subscriptionChange", () => {
+      onSubscriptionChange(() => {
         checkStatus();
       });
 
@@ -86,9 +66,6 @@ export function NotificationsSection() {
     run();
   }, [checkStatus]);
 
-  /* -----------------------------------------------
-     Handle subscribe click
-  ----------------------------------------------- */
   async function handleSubscribe() {
     if (subscribing) return;
 
@@ -96,6 +73,10 @@ export function NotificationsSection() {
 
     try {
       await subscribeToNotifications();
+
+      // Slight delay → OneSignal updates subscription state
+      await new Promise((r) => setTimeout(r, 150));
+
       await checkStatus();
     } catch (err) {
       console.error("Subscribe error:", err);
