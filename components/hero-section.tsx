@@ -170,7 +170,7 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
                 العد التنازلي للحدث
               </h3>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+            <div className="grid grid-cols-4 gap-4 max-w-3xl mx-auto" dir="ltr">
               {[
                 { label: 'Days', value: timeLeft.days, label_ar: 'يوم' },
                 { label: 'Hours', value: timeLeft.hours, label_ar: 'ساعة' },
@@ -233,11 +233,20 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
                 className="group relative"
               >
                 <div className="relative bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                  <div className="inline-flex p-3 rounded-xl mb-4" style={{ backgroundColor: feature.color }}>
-                    <div className="text-white">{feature.icon}</div>
+                  <div className="flex flex-col items-center text-center space-y-4">
+                    <div
+                      className="inline-flex p-3 rounded-xl"
+                      style={{ backgroundColor: feature.color }}
+                    >
+                      <div className="text-white">{feature.icon}</div>
+                    </div>
+                    <h3 className="text-xl font-bold text-[#242E48]">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 leading-relaxed">
+                      {feature.description}
+                    </p>
                   </div>
-                  <h3 className="text-xl font-bold text-[#242E48] mb-2">{feature.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
                 </div>
               </motion.div>
             ))}

@@ -94,19 +94,88 @@ export function Navbar() {
       >
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* GDG Logo */}
-            <Link href="/" className="flex items-center hover:scale-105 transition-transform">
-              <Image
-                src="/images/gdg-logo.png"
-                alt="Google Developer Groups"
-                width={48}
-                height={48}
-                className="w-12 h-12"
-              />
-            </Link>
+            {/* Left Side - Auth Buttons and Mobile Menu */}
+            <div className="flex items-center gap-3">
+              {/* Desktop Auth Buttons */}
+              <div className="hidden md:flex items-center gap-3">
+                {isSignedIn ? (
+                  <>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={user?.imageUrl} alt={user?.fullName || 'User'} />
+                            <AvatarFallback className="bg-[var(--gspark-blue)] text-white">
+                              {getUserInitials()}
+                            </AvatarFallback>
+                          </Avatar>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56" align="end" forceMount>
+                        <DropdownMenuLabel className="font-normal">
+                          <div className="flex flex-col space-y-1">
+                            <p className="text-sm font-medium leading-none">
+                              {user?.fullName || user?.firstName || 'User'}
+                            </p>
+                            <p className="text-xs leading-none text-muted-foreground">
+                              {user?.emailAddresses[0]?.emailAddress}
+                            </p>
+                          </div>
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => window.location.href = mainAppUrl}>
+                          <User className="mr-2 h-4 w-4" />
+                          <span>Profile</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => signOut()}>
+                          <LogOut className="mr-2 h-4 w-4" />
+                          <span>Sign out</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setQrDialogOpen(true)}
+                      className="rounded-full border-[#4285F4] text-[#4285F4] hover:bg-[#4285F4]/10"
+                    >
+                      <QrCode className="h-5 w-5" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="ghost"
+                      onClick={handleSignIn}
+                      className="text-[#242E48] hover:bg-[#4285F4]/10 hover:text-[#4285F4] rounded-xl px-6 font-semibold transition-all duration-200"
+                    >
+                      Sign In
+                    </Button>
+                    <Button
+                      onClick={handleSignUp}
+                      className="bg-linear-to-r from-[#4285F4] to-[#34A853] text-white hover:shadow-xl rounded-xl px-6 font-semibold transition-all duration-200 hover:scale-105"
+                    >
+                      Sign Up
+                    </Button>
+                  </>
+                )}
+              </div>
 
-            {/* Desktop Nav Links */}
-            <div className="hidden md:flex items-center gap-2">
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 text-[#242E48] hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                {mobileMenuOpen ? (
+                  <XIcon className="h-6 w-6" />
+                ) : (
+                  <MenuIcon className="h-6 w-6" />
+                )}
+              </button>
+            </div>
+
+            {/* Center - Nav Links */}
+            <div className="hidden md:flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
               {[
                 { label: 'اشعارات', id: 'notifications' },
                 { label: 'تصويت', id: 'voting' },
@@ -125,82 +194,16 @@ export function Navbar() {
               ))}
             </div>
 
-            {/* Desktop Auth Buttons */}
-            <div className="hidden md:flex items-center gap-3">
-              {isSignedIn ? (
-                <>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setQrDialogOpen(true)}
-                    className="rounded-full border-[#4285F4] text-[#4285F4] hover:bg-[#4285F4]/10"
-                  >
-                    <QrCode className="h-5 w-5" />
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={user?.imageUrl} alt={user?.fullName || 'User'} />
-                          <AvatarFallback className="bg-[var(--gspark-blue)] text-white">
-                            {getUserInitials()}
-                          </AvatarFallback>
-                        </Avatar>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56" align="end" forceMount>
-                      <DropdownMenuLabel className="font-normal">
-                        <div className="flex flex-col space-y-1">
-                          <p className="text-sm font-medium leading-none">
-                            {user?.fullName || user?.firstName || 'User'}
-                          </p>
-                          <p className="text-xs leading-none text-muted-foreground">
-                            {user?.emailAddresses[0]?.emailAddress}
-                          </p>
-                        </div>
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => window.location.href = mainAppUrl}>
-                        <User className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => signOut()}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Sign out</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </>
-              ) : (
-                <>
-                  <Button
-                    variant="ghost"
-                    onClick={handleSignIn}
-                    className="text-[#242E48] hover:bg-[#4285F4]/10 hover:text-[#4285F4] rounded-xl px-6 font-semibold transition-all duration-200"
-                  >
-                    Sign In
-                  </Button>
-                  <Button
-                    onClick={handleSignUp}
-                    className="bg-linear-to-r from-[#4285F4] to-[#34A853] text-white hover:shadow-xl rounded-xl px-6 font-semibold transition-all duration-200 hover:scale-105"
-                  >
-                    Sign Up
-                  </Button>
-                </>
-              )}
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-[#242E48] hover:bg-gray-100 rounded-xl transition-colors"
-            >
-              {mobileMenuOpen ? (
-                <XIcon className="h-6 w-6" />
-              ) : (
-                <MenuIcon className="h-6 w-6" />
-              )}
-            </button>
+            {/* GDG Logo - Right Side */}
+            <Link href="/" className="flex items-center hover:scale-105 transition-transform">
+              <Image
+                src="/images/gdg-logo.png"
+                alt="Google Developer Groups"
+                width={48}
+                height={48}
+                className="w-12 h-12"
+              />
+            </Link>
           </div>
         </div>
       </nav>
