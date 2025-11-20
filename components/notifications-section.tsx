@@ -119,32 +119,12 @@ export function NotificationsSection() {
                 <OneSignalCustomPrompt isSubscribed={isGranted} />
               )}
 
-              {/* Benefits List */}
-              {!isDenied && (
-                <div className="bg-gray-50 rounded-xl p-6 space-y-4">
-                  <h4 className="font-bold text-[#242E48] text-right text-base" dir="rtl">
-                    ليش تفّعل الاشعارات؟ 🔔
-                  </h4>
-                  <ul className="space-y-3 text-right" dir="rtl">
-                    {[
-                      "💡 عشان تاصلك أخبار ومستجدات الحفل",
-                      "📅 تجيك اشعارات عن مواعيد فعاليات الحفل",
-                      "🏆  تتابع الفائزين مباشرة اثناء الحفل",
-                    ].map((benefit, index) => (
-                      <li key={index} className="text-gray-700 text-sm leading-relaxed">
-                        {benefit}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
               {/* iOS Instructions */}
               {iosInstructions && (
                 <div className="bg-[#4285F4]/5 border-2 border-[#4285F4]/20 rounded-xl p-6 space-y-4">
-                  <div className="flex items-center gap-2 justify-end" dir="rtl">
+                  <div className="flex items-center gap-2 justify-end flex-col-reverse" dir="rtl">
                     <h4 className="text-lg text-[#242E48] font-bold">
-                      تعليمات لمستخدمي آيفون
+                      لازم تتبع هذي الخطوات عشان تفعل الاشعارات على اجهزة IOS
                     </h4>
                     <SmartphoneIcon className="h-5 w-5 text-[#4285F4]" />
                   </div>
@@ -162,6 +142,27 @@ export function NotificationsSection() {
                   </div>
                 </div>
               )}
+
+              {/* Benefits List */}
+              {!isDenied && (
+                <div className="bg-gray-50 rounded-xl p-6 space-y-4">
+                  <h4 className="font-bold text-[#242E48] text-right text-base" dir="rtl">
+                    ليش تفّعل الاشعارات؟ 
+                  </h4>
+                  <ul className="space-y-3 text-right" dir="rtl">
+                    {[
+                      "💡 عشان تاصلك أخبار ومستجدات الحفل",
+                      "📅 تجيك اشعارات عن مواعيد فعاليات الحفل",
+                      "🏆  تتابع الفائزين مباشرة اثناء الحفل",
+                    ].map((benefit, index) => (
+                      <li key={index} className="text-gray-700 text-sm leading-relaxed">
+                        {benefit}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
             </CardContent>
           </Card>
         </div>
