@@ -1,0 +1,97 @@
+/* OneSignal Custom Link Prompt Styling */
+/* Make the OneSignal custom prompt look like the G-Spark green button */
+
+.onesignal-customlink-container {
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Style the OneSignal custom link prompt - RED when not subscribed */
+.onesignal-customlink-container .onesignal-customlink-prompt,
+.onesignal-customlink-container > div,
+.onesignal-customlink-container button,
+.onesignal-customlink-container a {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 600px;
+  padding: 1.75rem 1.5rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, #EA4335 0%, #d93025 100%);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(234, 67, 53, 0.2), 0 2px 4px -1px rgba(234, 67, 53, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  direction: rtl;
+}
+
+.onesignal-customlink-container button:hover,
+.onesignal-customlink-container a:hover {
+  box-shadow: 0 6px 10px -2px rgba(234, 67, 53, 0.25), 0 4px 6px -2px rgba(234, 67, 53, 0.15);
+  transform: translateY(-2px);
+}
+
+/* GREEN when subscribed */
+.onesignal-customlink-container.subscribed .onesignal-customlink-prompt,
+.onesignal-customlink-container.subscribed > div,
+.onesignal-customlink-container.subscribed button,
+.onesignal-customlink-container.subscribed a {
+  background: linear-gradient(135deg, #34A853 0%, #2d9648 100%);
+  box-shadow: 0 4px 6px -1px rgba(52, 168, 83, 0.2), 0 2px 4px -1px rgba(52, 168, 83, 0.1);
+}
+
+.onesignal-customlink-container.subscribed button:hover,
+.onesignal-customlink-container.subscribed a:hover {
+  box-shadow: 0 6px 10px -2px rgba(52, 168, 83, 0.25), 0 4px 6px -2px rgba(52, 168, 83, 0.15);
+}
+
+.onesignal-customlink-container button:active,
+.onesignal-customlink-container a:active {
+  transform: translateY(0);
+}
+
+/* Hide bell icon and any default OneSignal icons */
+.onesignal-customlink-container button::before,
+.onesignal-customlink-container a::before,
+.onesignal-customlink-container .onesignal-bell-launcher,
+.onesignal-customlink-container .onesignal-bell-launcher-button,
+.onesignal-customlink-container img,
+.onesignal-customlink-container svg {
+  display: none !important;
+}
+
+/* Override any inline styles */
+.onesignal-customlink-container * {
+  box-sizing: border-box !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .onesignal-customlink-container button,
+  .onesignal-customlink-container a {
+    padding: 1.5rem 1rem;
+    font-size: 1rem;
+  }
+}
+
+/* Loading state (when button is clicked) */
+.onesignal-customlink-container button:disabled,
+.onesignal-customlink-container a:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Focus state for accessibility */
+.onesignal-customlink-container button:focus-visible,
+.onesignal-customlink-container a:focus-visible {
+  outline: 3px solid rgba(52, 168, 83, 0.5);
+  outline-offset: 2px;
+}

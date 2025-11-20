@@ -3,6 +3,11 @@ we use [clerk](https://clerk.com) for auth, however since we already also use it
 this requires both sites to be on the same root domain (in this case [gdg-q.com](https://gdg-q.com)) 
 and to use the same keys in the .env for both sites.
 
+### Push Notifications
+We use [OneSignal](https://onesignal.com) for web push notifications via the official `react-onesignal` library.
+- **App ID**: `40436e0d-647a-4d57-8c3a-d4f71c4cdc54`
+- **Service Worker**: Located at `/public/OneSignalSDKWorker.js` (must not be moved)
+
 # Local dev
 ## .env
 ### clerk

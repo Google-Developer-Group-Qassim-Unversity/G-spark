@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 import { ClerkProvider } from '@clerk/nextjs'
+import { OneSignalProvider } from '@/components/onesignal-provider'
 import './globals.css'
-import Script from 'next/script'
+import '@/styles/onesignal-custom-prompt.css'
 
 export const metadata: Metadata = {
   title: 'G-Spark Conference | حفل ختام انشطة مجموعة قوقل للطلبة المطورين',
@@ -31,14 +32,10 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <head>
-          <Script
-            src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
-            defer
-          />
-        </head>
         <body className={`font-sans antialiased`}>
-          {children}
+          <OneSignalProvider>
+            {children}
+          </OneSignalProvider>
           <Analytics />
         </body>
       </html>
