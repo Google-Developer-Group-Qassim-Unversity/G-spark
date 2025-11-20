@@ -96,6 +96,30 @@ export function Navbar() {
           <div className="flex items-center justify-between">
             {/* Left Side - Auth Buttons and Mobile Menu */}
             <div className="flex items-center gap-3">
+              {/* Mobile Menu Button - First */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 text-[#242E48] hover:bg-gray-100 rounded-xl transition-colors"
+              >
+                {mobileMenuOpen ? (
+                  <XIcon className="h-6 w-6" />
+                ) : (
+                  <MenuIcon className="h-6 w-6" />
+                )}
+              </button>
+
+              {/* Mobile QR Code Button - Second (only show if signed in) */}
+              {isSignedIn && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setQrDialogOpen(true)}
+                  className="md:hidden rounded-full border-[#4285F4] text-[#4285F4] hover:bg-[#4285F4]/10"
+                >
+                  <QrCode className="h-5 w-5" />
+                </Button>
+              )}
+
               {/* Desktop Auth Buttons */}
               <div className="hidden md:flex items-center gap-3">
                 {isSignedIn ? (
@@ -160,18 +184,6 @@ export function Navbar() {
                   </>
                 )}
               </div>
-
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 text-[#242E48] hover:bg-gray-100 rounded-xl transition-colors"
-              >
-                {mobileMenuOpen ? (
-                  <XIcon className="h-6 w-6" />
-                ) : (
-                  <MenuIcon className="h-6 w-6" />
-                )}
-              </button>
             </div>
 
             {/* Center - Nav Links */}
@@ -242,17 +254,6 @@ export function Navbar() {
                     <p className="font-medium">{user?.fullName || user?.firstName || 'User'}</p>
                     <p className="text-xs text-gray-600">{user?.emailAddresses[0]?.emailAddress}</p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setQrDialogOpen(true);
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full text-[#242E48] hover:bg-[#4285F4]/10 hover:text-[#4285F4] rounded-xl font-semibold justify-start"
-                  >
-                    <QrCode className="mr-2 h-4 w-4" />
-                    عرض رمز الحضور
-                  </Button>
                   <Button
                     variant="ghost"
                     onClick={() => window.location.href = mainAppUrl}

@@ -170,7 +170,7 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
                 العد التنازلي للحدث
               </h3>
             </div>
-            <div className="grid grid-cols-4 gap-4 max-w-3xl mx-auto" dir="ltr">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4 max-w-3xl mx-auto px-2" dir="ltr">
               {[
                 { label: 'Days', value: timeLeft.days, label_ar: 'يوم' },
                 { label: 'Hours', value: timeLeft.hours, label_ar: 'ساعة' },
@@ -184,14 +184,14 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
                   transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
                   className="relative group"
                 >
-                  <div className="relative bg-white rounded-2xl p-6 md:p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                    <div className="text-5xl md:text-6xl font-bold text-[#4285F4] mb-2">
+                  <div className="relative bg-white rounded-xl md:rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col items-center justify-center text-center">
+                    <div className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#4285F4] mb-2">
                       {String(item.value).padStart(2, '0')}
                     </div>
-                    <div className="text-sm md:text-base text-gray-600 font-semibold">
+                    <div className="text-xs sm:text-sm md:text-base text-gray-600 font-semibold">
                       {item.label}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">{item.label_ar}</div>
+                    <div className="text-[10px] sm:text-xs md:text-xs text-gray-500 mt-1">{item.label_ar}</div>
                   </div>
                 </motion.div>
               ))}
