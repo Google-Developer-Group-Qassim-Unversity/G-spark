@@ -2,8 +2,15 @@ import type { Metadata, Viewport } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 import { ClerkProvider } from '@clerk/nextjs'
 import { OneSignalProvider } from '@/components/onesignal-provider'
+import { Tajawal } from 'next/font/google'
 import './globals.css'
 import '@/styles/onesignal-custom-prompt.css'
+
+const tajawal = Tajawal({ 
+  weight: ['400', '500', '700', '800'],
+  subsets: ['arabic'],
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'G-Spark Conference | حفل ختام انشطة مجموعة قوقل للطلبة المطورين',
@@ -31,8 +38,8 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body className={`font-sans antialiased`}>
+      <html lang="ar" dir="rtl">
+        <body className={`${tajawal.className} antialiased`}>
           <OneSignalProvider>
             {children}
           </OneSignalProvider>

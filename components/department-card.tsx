@@ -39,11 +39,11 @@ export function DepartmentCard({
         </div>
 
         {/* Department Name */}
-        <h3 className="text-[#242E48] font-bold text-base md:text-lg flex-1 truncate">
+        <h3 className="text-[#242E48] font-bold text-base md:text-lg flex-1">
           {dept.department_name}
         </h3>
-
-        {/* Vote Button */}
+      </div>
+      {/* Vote Button */}
         <Button
           size="sm"
           onClick={() => onVote(dept.department_id)}
@@ -54,7 +54,7 @@ export function DepartmentCard({
               : !isSignedIn
               ? 'bg-[#4285F4] hover:bg-[#3367D6] text-white'
               : 'bg-[#4285F4] hover:bg-[#3367D6] text-white'
-          } font-semibold px-5 py-2.5 rounded-xl transition-all duration-300 hover:scale-105 disabled:hover:scale-100 shrink-0 text-sm`}
+          } font-semibold px-5 py-2.5 mb-5 rounded-xl transition-all duration-300 hover:scale-105 disabled:hover:scale-100 shrink-0 text-sm`}
         >
           {voting === dept.department_id ? (
             <>
@@ -73,12 +73,11 @@ export function DepartmentCard({
             </>
           )}
         </Button>
-      </div>
 
       {/* Vote Count and Percentage */}
       <div className="flex items-center gap-2 mb-3 text-sm">
         <span className="text-gray-600 font-medium">
-          أصوات {dept.votes}
+        {dept.votes} أصوات
         </span>
         <span className="text-gray-400">•</span>
         <span className="text-[#4285F4] font-bold">
