@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { MenuIcon, XIcon, LogOut, User } from 'lucide-react';
+import { MenuIcon, XIcon, LogOut, User, QrCode } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/nextjs';
 import { 
   DropdownMenu, 
@@ -15,12 +15,14 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { QRCodeDialog } from '@/components/qr-code-dialog';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
   
   // Clerk authentication
   const { isSignedIn, user } = useUser();
@@ -126,39 +128,49 @@ export function Navbar() {
             {/* Desktop Auth Buttons */}
             <div className="hidden md:flex items-center gap-3">
               {isSignedIn ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={user?.imageUrl} alt={user?.fullName || 'User'} />
-                        <AvatarFallback className="bg-[var(--gspark-blue)] text-white">
-                          {getUserInitials()}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <DropdownMenuLabel className="font-normal">
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">
-                          {user?.fullName || user?.firstName || 'User'}
-                        </p>
-                        <p className="text-xs leading-none text-muted-foreground">
-                          {user?.emailAddresses[0]?.emailAddress}
-                        </p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => window.location.href = mainAppUrl}>
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => signOut()}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Sign out</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setQrDialogOpen(true)}
+                    className="rounded-full border-[#4285F4] text-[#4285F4] hover:bg-[#4285F4]/10"
+                  >
+                    <QrCode className="h-5 w-5" />
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={user?.imageUrl} alt={user?.fullName || 'User'} />
+                          <AvatarFallback className="bg-[var(--gspark-blue)] text-white">
+                            {getUserInitials()}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                      <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium leading-none">
+                            {user?.fullName || user?.firstName || 'User'}
+                          </p>
+                          <p className="text-xs leading-none text-muted-foreground">
+                            {user?.emailAddresses[0]?.emailAddress}
+                          </p>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => window.location.href = mainAppUrl}>
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => signOut()}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Sign out</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
               ) : (
                 <>
                   <Button
@@ -229,6 +241,17 @@ export function Navbar() {
                   </div>
                   <Button
                     variant="ghost"
+                    onClick={() => {
+                      setQrDialogOpen(true);
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full text-[#242E48] hover:bg-[#4285F4]/10 hover:text-[#4285F4] rounded-xl font-semibold justify-start"
+                  >
+                    <QrCode className="mr-2 h-4 w-4" />
+                    عرض رمز الحضور
+                  </Button>
+                  <Button
+                    variant="ghost"
                     onClick={() => window.location.href = mainAppUrl}
                     className="w-full text-[#242E48] hover:bg-[#4285F4]/10 hover:text-[#4285F4] rounded-xl font-semibold justify-start"
                   >
@@ -265,6 +288,9 @@ export function Navbar() {
           </div>
         </div>
       )}
+
+      {/* QR Code Dialog */}
+      <QRCodeDialog open={qrDialogOpen} onOpenChange={setQrDialogOpen} />
     </>
   );
 }
