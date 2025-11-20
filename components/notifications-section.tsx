@@ -1,48 +1,18 @@
 "use client";
-
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {BellIcon, CheckCircle2Icon, AlertCircleIcon, SmartphoneIcon, XCircleIcon, BellRingIcon} from "lucide-react";
+import { OneSignalCustomPrompt } from "@/components/onesignal-custom-prompt";
 import {
-  BellIcon,
-  CheckCircle2Icon,
-  AlertCircleIcon,
-  SmartphoneIcon,
-  XCircleIcon,
-  BellRingIcon,
-} from "lucide-react";
-import {
-  initOneSignal,
-  subscribeToNotifications,
-  getSubscriptionInfo,
-  onSubscriptionChange,
-} from "@/lib/onesignal";
+  requestNotificationPermission,
+  getNotificationPermission,
+  onPermissionChange,
+  isIOSSafari
+} from "@/lib/onesignal-helpers";
 
 type PermissionStatus = "granted" | "denied" | "default";
-
-function isIOSSafari(): boolean {
-  if (typeof window === "undefined") return false;
-
-  const ua = window.navigator.userAgent || "";
-  const maxTouchPoints = (window.navigator as any).maxTouchPoints || 0;
-
-  const isIOSDevice =
-    /iPhone|iPad|iPod/.test(ua) ||
-    (/Macintosh/.test(ua) && maxTouchPoints > 1);
-
-  const isSafari =
-    /Safari/.test(ua) &&
-    !/Chrome|CriOS|FxiOS|OPiOS|EdgiOS/.test(ua);
-
-  return isIOSDevice && isSafari;
-}
 
 export function NotificationsSection() {
   const [permission, setPermission] = useState<PermissionStatus>("default");
@@ -51,15 +21,8 @@ export function NotificationsSection() {
 
   const checkStatus = useCallback(async () => {
     try {
-      const { permission } = await getSubscriptionInfo();
-
-      if (permission === "denied") {
-        setPermission("denied");
-      } else if (permission === "granted") {
-        setPermission("granted");
-      } else {
-        setPermission("default");
-      }
+      const currentPermission = await getNotificationPermission();
+      setPermission(currentPermission);
     } catch (e) {
       console.error("[checkStatus error]", e);
       setPermission("default");
@@ -68,13 +31,11 @@ export function NotificationsSection() {
 
   useEffect(() => {
     const run = async () => {
-      await initOneSignal();
       await checkStatus();
 
-      await onSubscriptionChange((perm) => {
-        if (perm === "denied") setPermission("denied");
-        else if (perm === "granted") setPermission("granted");
-        else setPermission("default");
+      // Set up permission change listener
+      onPermissionChange((perm) => {
+        setPermission(perm);
       });
 
       setIosInstructions(isIOSSafari());
@@ -89,7 +50,7 @@ export function NotificationsSection() {
     setSubscribing(true);
 
     try {
-      await subscribeToNotifications();
+      await requestNotificationPermission();
       await new Promise((r) => setTimeout(r, 100));
       await checkStatus();
     } catch (err) {
@@ -120,7 +81,7 @@ export function NotificationsSection() {
               فعل الاشعارات
             </h2>
             <p className="text-lg text-gray-600" dir="rtl">
-              عشان تصير اول باول عن اخبار الحفل
+              عشان تعرف اول باول عن اخبار الحفل
             </p>
           </div>
 
@@ -128,111 +89,42 @@ export function NotificationsSection() {
           <Card className="shadow-xl border border-gray-200 bg-white overflow-hidden">
             <CardHeader className="text-center px-6 py-8">
               <CardTitle className="text-2xl text-[#242E48]" dir="rtl">
-                إشعارات الحدث
+                إشعارات الحفل
               </CardTitle>
-              <CardDescription className="text-gray-600 mt-2" dir="rtl">
-                ابقَ على اطلاع بآخر المستجدات
-              </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-6 px-6 pb-8">
-              {/* Status Alert */}
-              <div
-                className={`${
-                  isGranted
-                    ? "bg-[#34A853]/10 border-[#34A853]"
-                    : isDenied
-                    ? "bg-[#EA4335]/10 border-[#EA4335]"
-                    : "bg-[#FBBC05]/10 border-[#FBBC05]"
-                } rounded-xl border-2 p-4 transition-all duration-300`}
-              >
-                <div className="flex items-start gap-3" dir="rtl">
-                  <div className="shrink-0 mt-0.5">
-                    {isGranted ? (
-                      <CheckCircle2Icon className="h-6 w-6 text-[#34A853]" />
-                    ) : isDenied ? (
+              {/* Status Alert - only show if denied */}
+              {isDenied && (
+                <div className="bg-[#EA4335]/10 border-[#EA4335] rounded-xl border-2 p-4 transition-all duration-300">
+                  <div className="flex items-start gap-3" dir="rtl">
+                    <div className="shrink-0 mt-0.5">
                       <XCircleIcon className="h-6 w-6 text-[#EA4335]" />
-                    ) : (
-                      <AlertCircleIcon className="h-6 w-6 text-[#FBBC05]" />
-                    )}
-                  </div>
+                    </div>
 
-                  <div className="flex-1 min-w-0 text-right space-y-1">
-                    <p className="text-[#242E48] font-semibold text-base leading-relaxed">
-                      {isGranted
-                        ? "✅ تم تفعيل الاشعارات بنجاح!"
-                        : isDenied
-                        ? "⚠️ الاشعارات محظورة"
-                        : "📢 لم يتم تفعيل الاشعارات بعد"}
-                    </p>
-
-                    {isDenied && (
+                    <div className="flex-1 min-w-0 text-right space-y-1">
+                      <p className="text-[#242E48] font-semibold text-base leading-relaxed">
+                        ⚠️ الاشعارات محظورة
+                      </p>
                       <p className="text-gray-600 text-sm leading-relaxed">
                         يرجى إلغاء حظر الإشعارات من إعدادات المتصفح لتتمكن من تفعيلها مجدداً
                       </p>
-                    )}
-
-                    {!isGranted && !isDenied && (
-                      <p className="text-gray-600 text-sm leading-relaxed">
-                        فعّل الإشعارات للحصول على التحديثات الفورية
-                      </p>
-                    )}
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Action Button */}
-              {!isDenied && (
-                <Button
-                  size="lg"
-                  disabled={subscribing}
-                  onClick={handleSubscribe}
-                  className={`w-full font-bold text-lg py-7 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ${
-                    isGranted
-                      ? "bg-[#34A853] hover:bg-[#34A853]/90"
-                      : "bg-[#4285F4] hover:bg-[#4285F4]/90"
-                  } text-white hover:scale-105`}
-                >
-                  <div className="flex items-center justify-center gap-2" dir="rtl">
-                    <span>
-                      {subscribing
-                        ? "جاري الاشتراك..."
-                        : isGranted
-                        ? "التحقق من الاشعارات"
-                        : "تفعيل الاشعارات الآن"}
-                    </span>
-                    <BellIcon className="h-6 w-6" />
-                  </div>
-                </Button>
               )}
 
-              {/* Benefits List */}
+              {/* OneSignal Custom Link Prompt - RED when not subscribed, GREEN when subscribed */}
               {!isDenied && (
-                <div className="bg-gray-50 rounded-xl p-6 space-y-4">
-                  <h4 className="font-bold text-[#242E48] text-right text-base" dir="rtl">
-                    ماذا ستحصل عند التفعيل:
-                  </h4>
-                  <ul className="space-y-3 text-right" dir="rtl">
-                    {[
-                      "🎯 تحديثات فورية عن نتائج التصويت",
-                      "📅 تذكيرات بمواعيد الفعاليات",
-                      "🏆 إعلانات الفائزين مباشرة",
-                      "💡 أخبار ومستجدات المجموعة",
-                    ].map((benefit, index) => (
-                      <li key={index} className="text-gray-700 text-sm leading-relaxed">
-                        {benefit}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                <OneSignalCustomPrompt isSubscribed={isGranted} />
               )}
 
               {/* iOS Instructions */}
               {iosInstructions && (
                 <div className="bg-[#4285F4]/5 border-2 border-[#4285F4]/20 rounded-xl p-6 space-y-4">
-                  <div className="flex items-center gap-2 justify-end" dir="rtl">
+                  <div className="flex items-center gap-2 justify-end flex-col-reverse" dir="rtl">
                     <h4 className="text-lg text-[#242E48] font-bold">
-                      تعليمات لمستخدمي آيفون
+                      لازم تتبع هذي الخطوات عشان تفعل الاشعارات على اجهزة IOS
                     </h4>
                     <SmartphoneIcon className="h-5 w-5 text-[#4285F4]" />
                   </div>
@@ -250,6 +142,27 @@ export function NotificationsSection() {
                   </div>
                 </div>
               )}
+
+              {/* Benefits List */}
+              {!isDenied && (
+                <div className="bg-gray-50 rounded-xl p-6 space-y-4">
+                  <h4 className="font-bold text-[#242E48] text-right text-base" dir="rtl">
+                    ليش تفّعل الاشعارات؟ 
+                  </h4>
+                  <ul className="space-y-3 text-right" dir="rtl">
+                    {[
+                      "💡 عشان تاصلك أخبار ومستجدات الحفل",
+                      "📅 تجيك اشعارات عن مواعيد فعاليات الحفل",
+                      "🏆  تتابع الفائزين مباشرة اثناء الحفل",
+                    ].map((benefit, index) => (
+                      <li key={index} className="text-gray-700 text-sm leading-relaxed">
+                        {benefit}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
             </CardContent>
           </Card>
         </div>
