@@ -4,13 +4,47 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { MenuIcon, XIcon } from 'lucide-react';
+import { MenuIcon, XIcon, LogOut, User } from 'lucide-react';
+import { useUser, useClerk } from '@clerk/nextjs';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Clerk authentication
+  const { isSignedIn, user } = useUser();
+  const { signOut } = useClerk();
+
+  // Get current URL and main app URL for redirects
+  const currentUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const mainAppUrl = process.env.NEXT_PUBLIC_MAIN_APP_URL || 'https://your-main-app.com';
+
+  const handleSignIn = () => {
+    window.location.href = `${mainAppUrl}/sign-in?redirect_url=${encodeURIComponent(currentUrl)}`;
+  };
+
+  const handleSignUp = () => {
+    window.location.href = `${mainAppUrl}/sign-up?redirect_url=${encodeURIComponent(currentUrl)}`;
+  };
+
+  const getUserInitials = () => {
+    if (!user) return 'U';
+    const firstName = user.firstName || '';
+    const lastName = user.lastName || '';
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || 
+           user.emailAddresses[0]?.emailAddress.charAt(0).toUpperCase() || 'U';
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -91,17 +125,57 @@ export function Navbar() {
 
             {/* Desktop Auth Buttons */}
             <div className="hidden md:flex items-center gap-3">
-              <Button
-                variant="ghost"
-                className="text-[#242E48] hover:bg-[#4285F4]/10 hover:text-[#4285F4] rounded-xl px-6 font-semibold transition-all duration-200"
-              >
-                Sign In
-              </Button>
-              <Button
-                className="bg-gradient-to-r from-[#4285F4] to-[#34A853] text-white hover:shadow-xl rounded-xl px-6 font-semibold transition-all duration-200 hover:scale-105"
-              >
-                Sign Up
-              </Button>
+              {isSignedIn ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={user?.imageUrl} alt={user?.fullName || 'User'} />
+                        <AvatarFallback className="bg-[var(--gspark-blue)] text-white">
+                          {getUserInitials()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          {user?.fullName || user?.firstName || 'User'}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user?.emailAddresses[0]?.emailAddress}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => window.location.href = mainAppUrl}>
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => signOut()}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Sign out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <>
+                  <Button
+                    variant="ghost"
+                    onClick={handleSignIn}
+                    className="text-[#242E48] hover:bg-[#4285F4]/10 hover:text-[#4285F4] rounded-xl px-6 font-semibold transition-all duration-200"
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    onClick={handleSignUp}
+                    className="bg-linear-to-r from-[#4285F4] to-[#34A853] text-white hover:shadow-xl rounded-xl px-6 font-semibold transition-all duration-200 hover:scale-105"
+                  >
+                    Sign Up
+                  </Button>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -147,17 +221,46 @@ export function Navbar() {
             ))}
 
             <div className="pt-4 border-t border-gray-200 space-y-3">
-              <Button
-                variant="ghost"
-                className="w-full text-[#242E48] hover:bg-[#4285F4]/10 hover:text-[#4285F4] rounded-xl font-semibold"
-              >
-                Sign In
-              </Button>
-              <Button
-                className="w-full bg-gradient-to-r from-[#4285F4] to-[#34A853] text-white hover:shadow-xl rounded-xl font-semibold"
-              >
-                Sign Up
-              </Button>
+              {isSignedIn ? (
+                <>
+                  <div className="px-4 py-2 text-sm text-[#242E48]">
+                    <p className="font-medium">{user?.fullName || user?.firstName || 'User'}</p>
+                    <p className="text-xs text-gray-600">{user?.emailAddresses[0]?.emailAddress}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    onClick={() => window.location.href = mainAppUrl}
+                    className="w-full text-[#242E48] hover:bg-[#4285F4]/10 hover:text-[#4285F4] rounded-xl font-semibold justify-start"
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => signOut()}
+                    className="w-full text-[#242E48] hover:bg-[#4285F4]/10 hover:text-[#4285F4] rounded-xl font-semibold justify-start"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="ghost"
+                    onClick={handleSignIn}
+                    className="w-full text-[#242E48] hover:bg-[#4285F4]/10 hover:text-[#4285F4] rounded-xl font-semibold"
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    onClick={handleSignUp}
+                    className="w-full bg-linear-to-r from-[#4285F4] to-[#34A853] text-white hover:shadow-xl rounded-xl font-semibold"
+                  >
+                    Sign Up
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>

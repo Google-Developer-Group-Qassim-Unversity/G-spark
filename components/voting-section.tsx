@@ -1,25 +1,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrophyIcon, VoteIcon } from 'lucide-react';
-import { getDepartmentVotes, castVote, Department } from '@/lib/api';
+import { TrophyIcon } from 'lucide-react';
+import { getDepartmentVotes, castVote, checkHasVoted, Department } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { useUser, useAuth } from '@clerk/nextjs';
+import { DepartmentCard } from '@/components/department-card';
 
 export function VotingSection() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [voting, setVoting] = useState<number | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
+  const [checkingVoteStatus, setCheckingVoteStatus] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    loadDepartments();
-    // Check if user has voted
-    const voted = localStorage.getItem('gspark-voted');
-    setHasVoted(voted === 'true');
-  }, []);
+  
+  // Clerk authentication
+  const { isSignedIn, user } = useUser();
+  const { getToken } = useAuth();
 
   const loadDepartments = async () => {
     setLoading(true);
@@ -33,11 +32,67 @@ export function VotingSection() {
     }
   };
 
+  const checkUserVoteStatus = async () => {
+    setCheckingVoteStatus(true);
+    try {
+      const token = await getToken();
+      
+      if (token) {
+        console.log('[v0] Got token for vote status check, length:', token.length);
+        const hasVotedFromApi = await checkHasVoted(token);
+        setHasVoted(hasVotedFromApi);
+      } else {
+        console.warn('[v0] No token available for vote status check');
+      }
+    } catch (error) {
+      console.error('[v0] Failed to check vote status:', error);
+      // Fallback to localStorage
+      if (user) {
+        const voted = localStorage.getItem(`gspark-voted-${user.id}`);
+        setHasVoted(voted === 'true');
+      }
+    } finally {
+      setCheckingVoteStatus(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDepartments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (isSignedIn && user) {
+      checkUserVoteStatus();
+    } else {
+      // Fallback to old localStorage method for unauthenticated users
+      const voted = localStorage.getItem('gspark-voted');
+      setHasVoted(voted === 'true');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSignedIn, user]);
+
   const handleVote = async (departmentId: number) => {
+    if (!isSignedIn) {
+      toast({
+        title: '!لازم تسجل دخول',
+        description: '...تحتاج حساب عشان تخمّن بنوديك تسجّل الحين',
+        variant: 'default',
+      });
+      
+      // Redirect to sign-in page
+      const mainAppUrl = process.env.NEXT_PUBLIC_MAIN_APP_URL || 'https://your-main-app.com';
+      const currentUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      setTimeout(() => {
+        window.location.href = `${mainAppUrl}/sign-in?redirect_url=${encodeURIComponent(currentUrl)}`;
+      }, 1500);
+      return;
+    }
+
     if (hasVoted) {
       toast({
-        title: 'Already Voted',
-        description: 'You have already cast your vote!',
+        title: 'سجلنا تصويتك من زمان ما تقدر تصوت الا مرة!',
+        description: 'لا يمكنك التصويت إلا مرة واحدة!',
         variant: 'destructive',
       });
       return;
@@ -45,29 +100,56 @@ export function VotingSection() {
 
     setVoting(departmentId);
     try {
-      const success = await castVote(departmentId);
+      const token = await getToken();
       
-      if (success) {
+      if (!token) {
+        console.warn('[v0] No token available for voting');
+        toast({
+          title: 'خطأ في المصادقة',
+          description: 'لم نتمكن من الحصول على رمز المصادقة.',
+          variant: 'destructive',
+        });
+        setVoting(null);
+        return;
+      }
+
+      console.log('[v0] Got token for voting, length:', token.length);
+      const result = await castVote(departmentId, token);
+      
+      if (result.success && result.departments) {
         setHasVoted(true);
-        localStorage.setItem('gspark-voted', 'true');
-        await loadDepartments();
+        setDepartments(result.departments.sort((a, b) => b.votes - a.votes));
+        
+        // Store in localStorage as backup
+        if (user) {
+          localStorage.setItem(`gspark-voted-${user.id}`, 'true');
+        } else {
+          localStorage.setItem('gspark-voted', 'true');
+        }
         
         toast({
-          title: 'Vote Cast Successfully!',
-          description: 'Thank you for participating!',
+          title: 'تم التصويت بنجاح!',
+          description: 'شكراً لمشاركتك!',
+        });
+      } else if (result.error === 'Member has already voted') {
+        setHasVoted(true);
+        toast({
+          title: 'لقد قمت بالتصويت مسبقاً',
+          description: 'لا يمكنك التصويت إلا مرة واحدة!',
+          variant: 'destructive',
         });
       } else {
         toast({
-          title: 'Vote Failed',
-          description: 'Please try again later.',
+          title: 'فشل التصويت',
+          description: result.error || 'الرجاء المحاولة لاحقاً.',
           variant: 'destructive',
         });
       }
     } catch (error) {
       console.error('[v0] Vote error:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to cast vote.',
+        title: 'خطأ',
+        description: 'فشل في تسجيل التصويت.',
         variant: 'destructive',
       });
     } finally {
@@ -96,138 +178,43 @@ export function VotingSection() {
               خمن القسم الفائز
             </h2>
             <p className="text-lg text-gray-600 mb-2" style={{ direction: 'rtl' }}>
-              صوت للقسم الذي تتوقع فوزه واربح جوائز
+              قفلنا موقع النقاط من شهر ، والحين تغيرت النتائج تقدر تتوقع مين في المركز الاول 🤔
             </p>
-            <div className="inline-flex items-center gap-2 bg-[#4285F4]/10 px-4 py-2 rounded-full">
-              <span className="text-sm font-semibold text-[#4285F4]">
-                إجمالي الأصوات: {totalVotes}
-              </span>
-            </div>
           </div>
 
           {/* Leaderboard */}
-          <Card className="shadow-2xl border border-gray-200 bg-white overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-[#4285F4]/5 to-[#EA4335]/5 border-b border-gray-100">
+          <Card dir='rtl' className="shadow-2xl border border-gray-200 bg-gradient-to-r from-[#4285F4]/5 to-[#EA4335]/5 overflow-hidden">
+            <CardHeader className="border-b border-gray-100">
               <CardTitle className="text-2xl text-[#242E48] flex items-center gap-2">
                 <TrophyIcon className="h-6 w-6 text-[#FBBC05]" />
-                لوحة المتصدرين المباشرة
+                لوحة المتصدرين
               </CardTitle>
               <CardDescription className="text-gray-600">
-                صوّت للقسم الذي تتوقع أن يفوز وشارك في المنافسة!
+
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              {loading ? (
+              {loading || checkingVoteStatus ? (
                 <div className="text-center py-12">
                   <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#4285F4] border-t-transparent"></div>
-                  <p className="text-gray-600 mt-4">جاري التحميل...</p>
-                </div>
-              ) : (
-                departments.map((dept, index) => {
-                  const percentage = totalVotes > 0 ? (dept.votes / totalVotes) * 100 : 0;
-                  const isLeader = index === 0;
-                  const isTop3 = index < 3;
-
-                  return (
-                    <div 
-                      key={dept.department_id} 
-                      className={`space-y-3 p-4 rounded-xl transition-all duration-300 ${
-                        isLeader ? 'bg-[#FBBC05]/10 border-2 border-[#FBBC05]' : 'bg-gray-50 border-2 border-transparent hover:border-gray-200'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between flex-wrap gap-3">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          {/* Rank Badge */}
-                          <div className={`flex items-center justify-center w-10 h-10 rounded-full shrink-0 ${
-                            isLeader 
-                              ? 'bg-gradient-to-br from-[#FBBC05] to-[#F4B400] text-white shadow-lg' 
-                              : isTop3
-                              ? 'bg-gradient-to-br from-[#4285F4] to-[#3367D6] text-white'
-                              : 'bg-gray-200 text-gray-600'
-                          } font-bold text-lg`}>
-                            {index + 1}
-                          </div>
-
-                          {/* Department Name */}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-[#242E48] font-bold text-lg truncate">
-                              {dept.department_name}
-                            </h3>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-gray-600 text-sm font-medium">
-                                {dept.votes} {dept.votes === 1 ? 'صوت' : 'أصوات'}
-                              </span>
-                              <span className="text-gray-400">•</span>
-                              <span className="text-[#4285F4] text-sm font-semibold">
-                                {percentage.toFixed(1)}%
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Vote Button */}
-                        <Button
-                          size="lg"
-                          onClick={() => handleVote(dept.department_id)}
-                          disabled={hasVoted || voting !== null}
-                          className={`${
-                            hasVoted 
-                              ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                              : isLeader
-                              ? 'bg-[#FBBC05] hover:bg-[#F4B400] text-white'
-                              : 'bg-[#4285F4] hover:bg-[#4285F4]/90 text-white'
-                          } font-semibold px-6 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:hover:scale-100`}
-                        >
-                          {voting === dept.department_id ? (
-                            <>
-                              <div className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                              جاري التصويت...
-                            </>
-                          ) : hasVoted ? (
-                            <>
-                              <CheckCircle2Icon className="mr-2 h-5 w-5" />
-                              تم التصويت
-                            </>
-                          ) : (
-                            <>
-                              <VoteIcon className="mr-2 h-5 w-5" />
-                              صوّت الآن
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                      
-                      {/* Progress Bar */}
-                      <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full transition-all duration-500 ${
-                            isLeader 
-                              ? 'bg-gradient-to-r from-[#FBBC05] to-[#F4B400]' 
-                              : 'bg-gradient-to-r from-[#4285F4] to-[#3367D6]'
-                          }`}
-                          style={{ width: `${(dept.votes / maxVotes) * 100}%` }}
-                        />
-                      </div>
-
-                      {/* Leader Badge */}
-                      {isLeader && (
-                        <div className="flex items-center justify-center gap-2 text-[#FBBC05] font-bold text-sm">
-                          <TrophyIcon className="h-4 w-4" />
-                          المتصدر الحالي
-                        </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-
-              {/* Vote Notice */}
-              {!hasVoted && !loading && (
-                <div className="mt-6 p-4 bg-[#4285F4]/5 rounded-xl border border-[#4285F4]/20">
-                  <p className="text-[#242E48] text-sm text-center" style={{ direction: 'rtl' }}>
-                    💡 <strong>ملاحظة:</strong> يمكنك التصويت مرة واحدة فقط، اختر بحكمة!
+                  <p className="text-gray-600 mt-4">
+                    {loading ? 'جاري التحميل...' : 'جاري التحقق من حالة التصويت...'}
                   </p>
                 </div>
+              ) : (
+                departments.map((dept, index) => (
+                  <DepartmentCard
+                    key={dept.department_id}
+                    dept={dept}
+                    index={index}
+                    totalVotes={totalVotes}
+                    maxVotes={maxVotes}
+                    hasVoted={hasVoted}
+                    voting={voting}
+                    isSignedIn={isSignedIn}
+                    onVote={handleVote}
+                  />
+                ))
               )}
             </CardContent>
           </Card>

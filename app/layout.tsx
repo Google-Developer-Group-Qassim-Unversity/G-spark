@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Analytics } from '@vercel/analytics/next'
+import { ClerkProvider } from '@clerk/nextjs'
 import './globals.css'
 import Script from 'next/script'
 
@@ -28,17 +29,19 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <Script
-          src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
-          defer
-        />
-      </head>
-      <body className={`font-sans antialiased`}>
-        {children}
-        <Analytics />
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <head>
+          <Script
+            src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
+            defer
+          />
+        </head>
+        <body className={`font-sans antialiased`}>
+          {children}
+          <Analytics />
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }

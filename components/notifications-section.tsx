@@ -112,15 +112,15 @@ export function NotificationsSection() {
           {/* Header */}
           <div className="text-center mb-12">
             <div className="flex justify-center mb-4">
-              <div className="bg-[#4285F4] p-4 rounded-2xl shadow-lg">
-                <BellRingIcon className="h-16 w-16 text-white" />
+              <div className="bg-blue-400 p-4 rounded-2xl shadow-lg">
+                <BellRingIcon className="h-12 w-12 text-white" />
               </div>
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-[#242E48] mb-3" dir="rtl">
               فعل الاشعارات
             </h2>
             <p className="text-lg text-gray-600" dir="rtl">
-              احصل على تحديثات فورية حول الفعاليات والنتائج
+              عشان تصير اول باول عن اخبار الحفل
             </p>
           </div>
 
