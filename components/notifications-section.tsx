@@ -81,7 +81,7 @@ export function NotificationsSection() {
               فعل الاشعارات
             </h2>
             <p className="text-lg text-gray-600" dir="rtl">
-              عشان تصير اول باول عن اخبار الحفل
+              عشان تعرف اول باول عن اخبار الحفل
             </p>
           </div>
 
@@ -89,11 +89,8 @@ export function NotificationsSection() {
           <Card className="shadow-xl border border-gray-200 bg-white overflow-hidden">
             <CardHeader className="text-center px-6 py-8">
               <CardTitle className="text-2xl text-[#242E48]" dir="rtl">
-                إشعارات الحدث
+                إشعارات الحفل
               </CardTitle>
-              <CardDescription className="text-gray-600 mt-2" dir="rtl">
-                ابقَ على اطلاع بآخر المستجدات
-              </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-6 px-6 pb-8">
@@ -126,14 +123,13 @@ export function NotificationsSection() {
               {!isDenied && (
                 <div className="bg-gray-50 rounded-xl p-6 space-y-4">
                   <h4 className="font-bold text-[#242E48] text-right text-base" dir="rtl">
-                    ماذا ستحصل عند التفعيل:
+                    ليش تفّعل الاشعارات؟ 🔔
                   </h4>
                   <ul className="space-y-3 text-right" dir="rtl">
                     {[
-                      "🎯 تحديثات فورية عن نتائج التصويت",
-                      "📅 تذكيرات بمواعيد الفعاليات",
-                      "🏆 إعلانات الفائزين مباشرة",
-                      "💡 أخبار ومستجدات المجموعة",
+                      "💡 عشان تاصلك أخبار ومستجدات الحفل",
+                      "📅 تجيك اشعارات عن مواعيد فعاليات الحفل",
+                      "🏆  تتابع الفائزين مباشرة اثناء الحفل",
                     ].map((benefit, index) => (
                       <li key={index} className="text-gray-700 text-sm leading-relaxed">
                         {benefit}
