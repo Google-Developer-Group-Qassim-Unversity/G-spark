@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
+import Image from 'next/image';
 
 interface QRCodeDialogProps {
   open: boolean;
@@ -20,6 +21,7 @@ interface QRCodeDialogProps {
 export function QRCodeDialog({ open, onOpenChange }: QRCodeDialogProps) {
   const { user } = useUser();
   const qrRef = useRef<HTMLDivElement>(null);
+  const badgeRef = useRef<HTMLDivElement>(null);
 
   const qrData = JSON.stringify({
     userId: user?.id,
@@ -29,48 +31,70 @@ export function QRCodeDialog({ open, onOpenChange }: QRCodeDialogProps) {
   });
 
   const handleDownload = async () => {
-    const svg = qrRef.current?.querySelector('svg');
-    if (!svg) return;
+    const badgeContainer = badgeRef.current;
+    if (!badgeContainer) return;
 
-    // Clone the SVG to avoid modifying the original
-    const svgClone = svg.cloneNode(true) as SVGElement;
-    const svgData = new XMLSerializer().serializeToString(svgClone);
+    const badgeImg = document.createElement('img');
+    badgeImg.crossOrigin = 'anonymous';
     
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Increase size for better quality
-    const size = 512;
-    canvas.width = size;
-    canvas.height = size;
+    badgeImg.onload = () => {
+      // Use the actual image dimensions to avoid stretching
+      const badgeWidth = badgeImg.naturalWidth;
+      const badgeHeight = badgeImg.naturalHeight;
+      
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = badgeWidth;
+      canvas.height = badgeHeight;
 
-    const img = new Image();
-    
-    img.onload = () => {
-      // Draw white background
-      if (ctx) {
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, size, size);
+      if (!ctx) return;
+
+      // Draw the badge background at original size
+      ctx.drawImage(badgeImg, 0, 0, badgeWidth, badgeHeight);
+      
+      const svg = qrRef.current?.querySelector('svg');
+      if (!svg) return;
+
+      // Load the GDG logo first to embed it in the QR code
+      const logoImg = document.createElement('img');
+      logoImg.crossOrigin = 'anonymous';
+      
+      logoImg.onload = () => {
+        const svgClone = svg.cloneNode(true) as SVGElement;
         
-        // Draw the QR code
-        ctx.drawImage(img, 0, 0, size, size);
+        // Convert logo to base64 and embed it in the SVG with higher resolution
+        const logoCanvas = document.createElement('canvas');
+        const logoCtx = logoCanvas.getContext('2d');
+        // Use 4x size for better quality when scaled
+        const logoSize = 128;
+        logoCanvas.width = logoSize;
+        logoCanvas.height = logoSize;
         
-        // Load and draw the Google logo on top
-        const logo = new Image();
-        logo.crossOrigin = 'anonymous';
-        logo.onload = () => {
-          const logoSize = size * 0.2; // 20% of QR code size
-          const logoX = (size - logoSize) / 2;
-          const logoY = (size - logoSize) / 2;
+        if (logoCtx) {
+          // Enable image smoothing for better quality
+          logoCtx.imageSmoothingEnabled = true;
+          logoCtx.imageSmoothingQuality = 'high';
+          logoCtx.drawImage(logoImg, 0, 0, logoSize, logoSize);
+          const logoDataUrl = logoCanvas.toDataURL('image/png');
           
-          // Draw white circle background for logo
-          ctx.fillStyle = 'white';
-          ctx.beginPath();
-          ctx.arc(size / 2, size / 2, logoSize / 2 + 8, 0, Math.PI * 2);
-          ctx.fill();
+          // Replace the logo src in the SVG with the data URL
+          const imageElements = svgClone.querySelectorAll('image');
+          imageElements.forEach(img => {
+            img.setAttribute('href', logoDataUrl);
+          });
+        }
+        
+        const svgData = new XMLSerializer().serializeToString(svgClone);
+        
+        const qrImg = document.createElement('img');
+        qrImg.onload = () => {
+          // QR code positioning - centered on the badge
+          const qrSize = Math.min(badgeWidth, badgeHeight) * 0.4; // 40% of smaller dimension
+          const qrX = (badgeWidth - qrSize) / 2;
+          const qrY = (badgeHeight - qrSize) / 2 - 100; // Centered vertically with slight upward adjustment
           
-          // Draw the logo
-          ctx.drawImage(logo, logoX, logoY, logoSize, logoSize);
+          // Draw the QR code
+          ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
           
           // Convert to blob and download
           canvas.toBlob((blob) => {
@@ -78,28 +102,84 @@ export function QRCodeDialog({ open, onOpenChange }: QRCodeDialogProps) {
               const url = URL.createObjectURL(blob);
               const link = document.createElement('a');
               link.href = url;
-              link.download = `gdg-qr-${user?.firstName || 'attendance'}.png`;
+              link.download = `gspark-badge-${user?.firstName || 'attendee'}.png`;
               link.click();
               URL.revokeObjectURL(url);
             }
           }, 'image/png', 1.0);
         };
+
+        qrImg.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+      };
+      
+      logoImg.onerror = () => {
+        // If logo fails to load, proceed without it
+        const svgClone = svg.cloneNode(true) as SVGElement;
+        const svgData = new XMLSerializer().serializeToString(svgClone);
         
-        logo.onerror = () => {
-          // If logo fails to load, just download without it
+        const qrImg = document.createElement('img');
+        qrImg.onload = () => {
+          const qrSize = Math.min(badgeWidth, badgeHeight) * 0.4;
+          const qrX = (badgeWidth - qrSize) / 2;
+          const qrY = (badgeHeight - qrSize) / 2 - 100;
+          ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+          
           canvas.toBlob((blob) => {
             if (blob) {
               const url = URL.createObjectURL(blob);
               const link = document.createElement('a');
               link.href = url;
-              link.download = `gdg-qr-${user?.firstName || 'attendance'}.png`;
+              link.download = `gspark-badge-${user?.firstName || 'attendee'}.png`;
               link.click();
               URL.revokeObjectURL(url);
             }
           }, 'image/png', 1.0);
         };
+        qrImg.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+      };
+      
+      logoImg.src = '/images/gdg-logo.png';
+    };
+
+    badgeImg.onerror = () => {
+      console.error('Failed to load badge image');
+      handleSimpleQRDownload();
+    };
+
+    badgeImg.src = '/images/event-badge.png';
+  };
+
+  const handleSimpleQRDownload = async () => {
+    // Fallback to original simple QR download
+    const svg = qrRef.current?.querySelector('svg');
+    if (!svg) return;
+
+    const svgClone = svg.cloneNode(true) as SVGElement;
+    const svgData = new XMLSerializer().serializeToString(svgClone);
+    
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const size = 512;
+    canvas.width = size;
+    canvas.height = size;
+
+    const img = document.createElement('img');
+    img.onload = () => {
+      if (ctx) {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, size, size);
+        ctx.drawImage(img, 0, 0, size, size);
         
-        logo.src = '/images/gdg-logo.png';
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `gdg-qr-${user?.firstName || 'attendance'}.png`;
+            link.click();
+            URL.revokeObjectURL(url);
+          }
+        }, 'image/png', 1.0);
       }
     };
 
@@ -108,50 +188,67 @@ export function QRCodeDialog({ open, onOpenChange }: QRCodeDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-center text-2xl font-bold text-[#242E48]">
-            رمز الحضور الخاص بك
+          <DialogTitle className="text-center text-2xl font-bold text-[#242E48]" dir="rtl">
+            بطاقة الحضور الخاصة بك
           </DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col items-center gap-6 py-6">
-          <div className="relative">
-            <div className="absolute inset-0 bg-[#4285F4]/20 rounded-lg blur-xl" />
-            <div ref={qrRef} className="relative bg-white p-6 rounded-lg shadow-lg">
-              <QRCodeSVG
-                value={qrData}
-                size={256}
-                level="H"
-                includeMargin={true}
-                imageSettings={{
-                  src: '/images/gdg-logo.png',
-                  height: 48,
-                  width: 48,
-                  excavate: true,
-                }}
-              />
+        <div className="flex flex-col items-center gap-6 py-4">
+          {/* Badge Preview */}
+          <div ref={badgeRef} className="relative w-full max-w-sm">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#4285F4]/20 via-[#EA4335]/20 to-[#FBBC05]/20 rounded-2xl blur-2xl" />
+            <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden">
+              {/* Badge Background */}
+              <div className="relative aspect-[9/16] w-full">
+                <Image
+                  src="/images/event-badge.png"
+                  alt="Event Badge"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+                
+                {/* QR Code Overlay - centered on the badge */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center mt-0">
+                  {/* Raw QR code without white background */}
+                  <div ref={qrRef} className="shadow-lg">
+                    <QRCodeSVG
+                      value={qrData}
+                      size={160}
+                      level="H"
+                      includeMargin={false}
+                      imageSettings={{
+                        src: '/images/gdg-logo.png',
+                        height: 32,
+                        width: 32,
+                        excavate: true,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="text-center space-y-2">
-            <p className="text-gray-600 text-sm" dir="rtl">
-              قم بإظهار هذا الرمز للمنظمين عند الدخول
+          <div className="text-center space-y-2 px-4" dir="rtl">
+            <p className="text-gray-600 text-sm">
+              قم بإظهار هذه البطاقة للمنظمين عند الدخول
             </p>
-            <p className="text-[#242E48] font-semibold">
-              {user?.fullName || user?.firstName}
-            </p>
-            <p className="text-gray-500 text-sm">
-              {user?.emailAddresses[0]?.emailAddress}
+            <p className="text-xs text-gray-500">
+              يمكنك حفظ البطاقة على هاتفك أو طباعتها
             </p>
           </div>
 
-          <Button
-            onClick={handleDownload}
-            className="w-full bg-[#4285F4] hover:bg-[#357AE8] text-white"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            تحميل رمز الاستجابة السريعة
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm px-4">
+            <Button
+              onClick={handleDownload}
+              className="w-full bg-[#4285F4] hover:bg-[#357AE8] text-white shadow-lg"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              تحميل البطاقة
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
