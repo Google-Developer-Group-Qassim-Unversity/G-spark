@@ -1,6 +1,5 @@
 // API Configuration
-export const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://vote.albrrak773.com";
-
+export const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://vote.albrrak773.com"
 console.log('🌍 API Base URL:', BASE_URL);
 // Types
 export interface Department {
@@ -144,82 +143,5 @@ export async function castVote(
   } catch (error) {
     console.error('[v0] Vote error:', error);
     return { success: false, error: 'Network error' };
-  }
-}
-
-// Attendance API functions
-export async function checkAttendance(token: string): Promise<boolean> {
-  try {
-    console.log('[v0] Checking attendance status at:', `${BASE_URL}/members/attendance`);
-    const response = await fetch(`${BASE_URL}/members/attendance`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      cache: 'no-store',
-    });
-
-    console.log('[v0] Check attendance response status:', response.status);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[v0] Check attendance API error:', response.status, errorText);
-      return false;
-    }
-
-    const data = await response.json();
-    console.log('[v0] Attendance status:', data);
-    return data.has_attended || false;
-  } catch (error) {
-    console.error('[v0] Check attendance error:', error);
-    return false;
-  }
-}
-
-export async function markAttendance(token: string): Promise<{ success: boolean; error?: string; message?: string }> {
-  try {
-    console.log('[v0] Marking attendance at:', `${BASE_URL}/members/attendance`);
-    const response = await fetch(`${BASE_URL}/members/attendance`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    console.log('[v0] Mark attendance response status:', response.status);
-
-    // Handle 409 Conflict (already attended)
-    if (response.status === 409) {
-      const error = await response.json();
-      console.log('[v0] Already attended:', error);
-      return {
-        success: false,
-        error: error.detail || 'Member has already marked attendance',
-      };
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[v0] Mark attendance API error:', response.status, errorText);
-      return {
-        success: false,
-        error: `API error: ${response.status}`,
-      };
-    }
-
-    const data = await response.json();
-    console.log('[v0] Attendance marked successfully:', data);
-    return {
-      success: true,
-      message: data.message || 'Attendance marked successfully',
-    };
-  } catch (error) {
-    console.error('[v0] Mark attendance error:', error);
-    return {
-      success: false,
-      error: 'Network error',
-    };
   }
 }
