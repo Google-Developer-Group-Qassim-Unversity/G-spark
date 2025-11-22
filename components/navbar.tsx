@@ -30,7 +30,7 @@ export function Navbar() {
 
   // Get current URL and main app URL for redirects
   const currentUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  const mainAppUrl = process.env.NEXT_PUBLIC_MAIN_APP_URL || 'https://your-main-app.com';
+  const mainAppUrl = process.env.NEXT_PUBLIC_MAIN_APP_URL;
 
   const handleSignIn = () => {
     window.location.href = `${mainAppUrl}/sign-in?redirect_url=${encodeURIComponent(currentUrl)}`;
@@ -139,7 +139,7 @@ export function Navbar() {
                         <DropdownMenuLabel className="font-normal">
                           <div className="flex flex-col space-y-1">
                             <p className="text-sm font-medium leading-none">
-                              {user?.fullName || user?.firstName || 'User'}
+                              {user?.publicMetadata?.fullArabicName || user?.firstName || 'User'}
                             </p>
                             <p className="text-xs leading-none text-muted-foreground">
                               {user?.emailAddresses[0]?.emailAddress}

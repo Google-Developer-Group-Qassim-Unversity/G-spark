@@ -14,7 +14,14 @@
 .onesignal-customlink-container > div,
 .onesignal-customlink-container button,
 .onesignal-customlink-container a {
-  all: unset;
+  /* Reset styles but keep essential properties */
+  margin: 0;
+  border: none;
+  background-color: transparent;
+  text-decoration: none;
+  font-family: inherit;
+  
+  /* Button styling */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -31,6 +38,11 @@
   transition: all 0.2s ease;
   text-align: center;
   direction: rtl;
+  
+  /* Ensure clickability */
+  pointer-events: auto;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .onesignal-customlink-container button:hover,

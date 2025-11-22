@@ -144,7 +144,7 @@ export function NotificationsSection() {
               )}
 
               {/* Benefits List */}
-              {!isDenied && (
+              {(
                 <div className="bg-gray-50 rounded-xl p-6 space-y-4">
                   <h4 className="font-bold text-[#242E48] text-right text-base" dir="rtl">
                     ليش تفّعل الاشعارات؟ 
