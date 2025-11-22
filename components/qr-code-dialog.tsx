@@ -9,9 +9,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, QrCode } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
+import { AuthButton } from '@/components/auth-button';
 
 interface QRCodeDialogProps {
   open: boolean;
@@ -19,7 +20,7 @@ interface QRCodeDialogProps {
 }
 
 export function QRCodeDialog({ open, onOpenChange }: QRCodeDialogProps) {
-  const { user } = useUser();
+  const { isSignedIn, user } = useUser();
   const qrRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
 
@@ -186,6 +187,44 @@ export function QRCodeDialog({ open, onOpenChange }: QRCodeDialogProps) {
     img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
   };
 
+  // Show sign-in prompt if user is not authenticated
+  if (!isSignedIn) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl font-bold text-[#242E48]" dir="rtl">
+              احصل على بطاقة دعوة
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-6 py-6 px-4">
+            {/* Illustration or Icon */}
+            <div className="relative w-32 h-32 rounded-full bg-linear-to-br from-[#4285F4]/20 via-[#EA4335]/20 to-[#FBBC05]/20 flex items-center justify-center">
+              <QrCode className="w-16 h-16 text-[#4285F4]" />
+            </div>
+
+            {/* Message */}
+            <div className="text-center space-y-3" dir="rtl">
+              <h3 className="text-xl font-bold text-[#242E48]">
+                سجل الدخول للحصول على بطاقتك
+              </h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                 سجّل دخول أو أنشئ حساب جديد عشان تاخذ بطاقة دعوة خاصة بك مع رمز QR فريد
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3 w-full">
+              <AuthButton type="signin" />
+              <AuthButton type="signup" />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Original authenticated user content
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">

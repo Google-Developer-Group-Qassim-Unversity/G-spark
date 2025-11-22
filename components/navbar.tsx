@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { QRCodeDialog } from '@/components/qr-code-dialog';
+import { AuthButton } from '@/components/auth-button';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -28,17 +29,8 @@ export function Navbar() {
   const { isSignedIn, user } = useUser();
   const { signOut } = useClerk();
 
-  // Get current URL and main app URL for redirects
-  const currentUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  // Get main app URL for profile redirect
   const mainAppUrl = process.env.NEXT_PUBLIC_MAIN_APP_URL;
-
-  const handleSignIn = () => {
-    window.location.href = `${mainAppUrl}/sign-in?redirect_url=${encodeURIComponent(currentUrl)}`;
-  };
-
-  const handleSignUp = () => {
-    window.location.href = `${mainAppUrl}/sign-up?redirect_url=${encodeURIComponent(currentUrl)}`;
-  };
 
   const getUserInitials = () => {
     if (!user) return 'U';
@@ -108,17 +100,15 @@ export function Navbar() {
                 )}
               </button>
 
-              {/* Mobile QR Code Button - Second (only show if signed in) */}
-              {isSignedIn && (
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setQrDialogOpen(true)}
-                  className="md:hidden rounded-full border-[#4285F4] text-[#4285F4] hover:bg-[#4285F4]/10"
-                >
-                  <QrCode className="h-5 w-5" />
-                </Button>
-              )}
+              {/* Mobile QR Code Button - Second (always show) */}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setQrDialogOpen(true)}
+                className="md:hidden rounded-full border-[#4285F4] text-[#4285F4] hover:bg-[#4285F4]/10"
+              >
+                <QrCode className="h-5 w-5" />
+              </Button>
 
               {/* Desktop Auth Buttons */}
               <div className="hidden md:flex items-center gap-3">
@@ -157,32 +147,22 @@ export function Navbar() {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setQrDialogOpen(true)}
-                      className="rounded-full border-[#4285F4] text-[#4285F4] hover:bg-[#4285F4]/10"
-                    >
-                      <QrCode className="h-5 w-5" />
-                    </Button>
                   </>
                 ) : (
                   <>
-                    <Button
-                      variant="ghost"
-                      onClick={handleSignIn}
-                      className="text-[#242E48] hover:bg-[#4285F4]/10 hover:text-[#4285F4] rounded-xl px-6 font-semibold transition-all duration-200"
-                    >
-                      Sign In
-                    </Button>
-                    <Button
-                      onClick={handleSignUp}
-                      className="bg-linear-to-r from-[#4285F4] to-[#34A853] text-white hover:shadow-xl rounded-xl px-6 font-semibold transition-all duration-200 hover:scale-105"
-                    >
-                      Sign Up
-                    </Button>
+                    <AuthButton type="signin" />
+                    <AuthButton type="signup" />
                   </>
                 )}
+                {/* QR Code Button - Always show */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setQrDialogOpen(true)}
+                  className="rounded-full border-[#4285F4] text-[#4285F4] hover:bg-[#4285F4]/10"
+                >
+                  <QrCode className="h-5 w-5" />
+                </Button>
               </div>
             </div>
 
@@ -272,21 +252,10 @@ export function Navbar() {
                   </Button>
                 </>
               ) : (
-                <>
-                  <Button
-                    variant="ghost"
-                    onClick={handleSignIn}
-                    className="w-full text-[#242E48] hover:bg-[#4285F4]/10 hover:text-[#4285F4] rounded-xl font-semibold"
-                  >
-                    Sign In
-                  </Button>
-                  <Button
-                    onClick={handleSignUp}
-                    className="w-full bg-linear-to-r from-[#4285F4] to-[#34A853] text-white hover:shadow-xl rounded-xl font-semibold"
-                  >
-                    Sign Up
-                  </Button>
-                </>
+                <div className="space-y-3 w-full">
+                  <AuthButton type="signin" />
+                  <AuthButton type="signup" />
+                </div>
               )}
             </div>
           </div>
