@@ -46,7 +46,7 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
   }, []);
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-white pt-28 pb-20">
+    <section className="relative min-h-screen flex items-center overflow-hidden bg-white pt-16 pb-20">
       {/* Enhanced Background with Decorative Blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Existing subtle gradient blobs */}
@@ -115,15 +115,15 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-16"
+            className="text-center mb-10"
           >
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-6">
               <Image
                 src="/images/design-mode/logo-without_bg.png"
                 alt="G-Spark Logo"
-                width={500}
-                height={150}
-                className="w-full max-w-lg"
+                width={900}
+                height={270}
+                className="w-full max-w-full sm:max-w-lg md:max-w-3xl lg:max-w-4xl object-contain max-h-72 sm:max-h-80 md:max-h-96 lg:max-h-[480px]"
                 priority
               />
             </div>
