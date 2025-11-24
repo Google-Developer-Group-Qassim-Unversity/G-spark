@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { MenuIcon, XIcon, LogOut, User, QrCode } from 'lucide-react';
+import { MenuIcon, XIcon, LogOut, User, Mail } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/nextjs';
 import { 
   DropdownMenu, 
@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { QRCodeDialog } from '@/components/qr-code-dialog';
+import { InvitationDialog } from '@/components/invitation-dialog';
 import { AuthButton } from '@/components/auth-button';
 
 export function Navbar() {
@@ -23,14 +23,14 @@ export function Navbar() {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const [invitationDialogOpen, setInvitationDialogOpen] = useState(false);
   
   // Clerk authentication
   const { isSignedIn, user } = useUser();
   const { signOut } = useClerk();
 
   // Get main app URL for profile redirect
-  const mainAppUrl = process.env.NEXT_PUBLIC_MAIN_APP_URL;
+  const mainAppUrl = process.env.NEXT_PUBLIC_MAIN_APP_URL || '';
 
   const getUserInitials = () => {
     if (!user) return 'U';
@@ -100,14 +100,25 @@ export function Navbar() {
                 )}
               </button>
 
-              {/* Mobile QR Code Button - Second (always show) */}
+              {/* Mobile Invitation Button - Second */}
               <Button
                 variant="outline"
-                size="icon"
-                onClick={() => setQrDialogOpen(true)}
-                className="md:hidden rounded-full border-[#4285F4] text-[#4285F4] hover:bg-[#4285F4]/10"
+                size="sm"
+                onClick={() => {
+                  if (!isSignedIn) {
+                    // Use existing auth flow
+                    const mainAppUrl = process.env.NEXT_PUBLIC_MAIN_APP_URL;
+                    const currentUrl = window.location.origin;
+                    window.location.href = `${mainAppUrl}/sign-in?redirect_url=${encodeURIComponent(currentUrl)}`;
+                  } else {
+                    setInvitationDialogOpen(true);
+                  }
+                }}
+                className="md:hidden rounded-full border-[#4285F4] text-[#4285F4] hover:bg-[#4285F4]/10 px-3 py-2 text-xs font-semibold whitespace-nowrap"
+                dir="rtl"
               >
-                <QrCode className="h-5 w-5" />
+                <Mail className="h-4 w-4 ml-1" />
+                احصل على دعوة
               </Button>
 
               {/* Desktop Auth Buttons */}
@@ -129,7 +140,7 @@ export function Navbar() {
                         <DropdownMenuLabel className="font-normal">
                           <div className="flex flex-col space-y-1">
                             <p className="text-sm font-medium leading-none">
-                              {user?.publicMetadata?.fullArabicName || user?.firstName || 'User'}
+                              {(user?.publicMetadata as any)?.fullArabicName || user?.firstName || 'User'}
                             </p>
                             <p className="text-xs leading-none text-muted-foreground">
                               {user?.emailAddresses[0]?.emailAddress}
@@ -154,14 +165,25 @@ export function Navbar() {
                     <AuthButton type="signup" />
                   </>
                 )}
-                {/* QR Code Button - Always show */}
+                {/* Invitation Button - Always show */}
                 <Button
                   variant="outline"
-                  size="icon"
-                  onClick={() => setQrDialogOpen(true)}
-                  className="rounded-full border-[#4285F4] text-[#4285F4] hover:bg-[#4285F4]/10"
+                  size="sm"
+                  onClick={() => {
+                    if (!isSignedIn) {
+                      // Use existing auth flow
+                      const mainAppUrl = process.env.NEXT_PUBLIC_MAIN_APP_URL;
+                      const currentUrl = window.location.origin;
+                      window.location.href = `${mainAppUrl}/sign-in?redirect_url=${encodeURIComponent(currentUrl)}`;
+                    } else {
+                      setInvitationDialogOpen(true);
+                    }
+                  }}
+                  className="rounded-full border-[#4285F4] text-[#4285F4] hover:bg-[#4285F4]/10 px-4 py-2 text-sm font-semibold whitespace-nowrap"
+                  dir="rtl"
                 >
-                  <QrCode className="h-5 w-5" />
+                  <Mail className="h-4 w-4 ml-2" />
+                  احصل على دعوة
                 </Button>
               </div>
             </div>
@@ -262,8 +284,8 @@ export function Navbar() {
         </div>
       )}
 
-      {/* QR Code Dialog */}
-      <QRCodeDialog open={qrDialogOpen} onOpenChange={setQrDialogOpen} />
+      {/* Invitation Dialog */}
+      <InvitationDialog open={invitationDialogOpen} onOpenChange={setInvitationDialogOpen} />
     </>
   );
 }
