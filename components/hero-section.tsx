@@ -49,29 +49,37 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-white pt-16 pb-20">
       
-      {/* Background Decorations */}
+      {/* --- FIXED: Enhanced Vibrant Background (Mobile Optimized) --- */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Top Right: Purple/Blue */}
+        
+        {/* 1. Top Right: Purple/Blue - Made HUGE on mobile (140vw) so it's visible */}
         <div 
-          className="absolute -top-[20%] -right-[10%] w-[70vw] h-[70vw] rounded-full blur-[120px] opacity-20"
+          className="absolute -top-[30%] -right-[30%] md:-top-[20%] md:-right-[10%] w-[140vw] h-[140vw] md:w-[70vw] md:h-[70vw] rounded-full blur-[80px] md:blur-[120px] opacity-20"
           style={{ background: 'radial-gradient(circle, #A112F4 0%, #4285F4 60%, transparent 100%)' }} 
         />
 
-        {/* Bottom Left: Pink/Red */}
+        {/* 2. Bottom Left: Pink/Red - Made HUGE on mobile */}
         <div 
-          className="absolute -bottom-[20%] -left-[10%] w-[60vw] h-[60vw] rounded-full blur-[100px] opacity-15"
+          className="absolute -bottom-[20%] -left-[30%] md:-bottom-[20%] md:-left-[10%] w-[140vw] h-[140vw] md:w-[60vw] md:h-[60vw] rounded-full blur-[80px] md:blur-[100px] opacity-15"
           style={{ background: 'radial-gradient(circle, #FF4473 0%, #EA4335 60%, transparent 100%)' }}
         />
 
-        {/* Center: Yellow/Green */}
+        {/* 3. Center Floating Element: Yellow/Green */}
         <motion.div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] rounded-full blur-[90px] opacity-10"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] md:w-[40vw] md:h-[40vw] rounded-full blur-[60px] md:blur-[90px] opacity-10"
           style={{ background: 'radial-gradient(circle, #FBBC05 0%, #34A853 60%, transparent 100%)' }}
-          animate={{ scale: [1, 1.2, 1], opacity: [0.08, 0.12, 0.08] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.08, 0.12, 0.08],
+          }}
+          transition={{ 
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
         />
 
-        {/* Spark Dots */}
+        {/* 4. Tiny "Spark" dots */}
         <motion.div 
           className="absolute top-1/4 left-1/4 w-3 h-3 rounded-full bg-[#FBBC05] blur-[2px]"
           animate={{ y: [0, -20, 0], opacity: [0.4, 0.8, 0.4] }}
@@ -84,10 +92,8 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
         />
       </div>
 
-      {/* --- NEW: The Connector Gradient (Bottom Fade) --- */}
-      {/* This fades the bottom of the section to pure white, removing the hard cut line */}
+      {/* --- Connector Gradient (Bottom Fade) --- */}
       <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-white to-transparent z-0 pointer-events-none" />
-      {/* ------------------------------------------------ */}
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 lg:px-12 py-20">

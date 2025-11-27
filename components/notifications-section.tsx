@@ -63,16 +63,22 @@ export function NotificationsSection() {
       id="notifications"
       className="relative min-h-screen flex items-center justify-center py-20 overflow-hidden bg-white"
     >
-      {/* Background Decorations */}
+      {/* --- FIXED: Background Decorations (Mobile Optimized) --- */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        
+        {/* Top Left: Green Blob */}
         <div 
-          className="absolute -top-[10%] -left-[10%] w-[60vw] h-[60vw] rounded-full blur-[120px] opacity-15"
+          className="absolute -top-[10%] -left-[30%] md:-top-[10%] md:-left-[10%] w-[120vw] h-[120vw] md:w-[60vw] md:h-[60vw] rounded-full blur-[80px] md:blur-[120px] opacity-15"
           style={{ background: 'radial-gradient(circle, #34A853 0%, #81C995 60%, transparent 100%)' }} 
         />
+
+        {/* Bottom Right: Yellow Blob */}
         <div 
-          className="absolute -bottom-[10%] -right-[10%] w-[60vw] h-[60vw] rounded-full blur-[120px] opacity-15"
+          className="absolute -bottom-[10%] -right-[30%] md:-bottom-[10%] md:-right-[10%] w-[120vw] h-[120vw] md:w-[60vw] md:h-[60vw] rounded-full blur-[80px] md:blur-[120px] opacity-15"
           style={{ background: 'radial-gradient(circle, #FBBC05 0%, #F4B46B 60%, transparent 100%)' }}
         />
+
+        {/* Floating Spark Dots */}
         <motion.div 
           className="absolute top-1/3 right-[10%] w-4 h-4 rounded-full bg-[#34A853] blur-[2px]"
           animate={{ y: [0, -30, 0], opacity: [0.3, 0.7, 0.3] }}
@@ -168,7 +174,7 @@ export function NotificationsSection() {
                 </div>
               )}
 
-              {/* Benefits List - FIXED ALIGNMENT */}
+              {/* Benefits List */}
               {(
                 <div className="bg-gray-50/80 rounded-xl p-6 space-y-4">
                   <h4 className="font-bold text-[#242E48] text-right text-base" dir="rtl">
@@ -180,10 +186,9 @@ export function NotificationsSection() {
                       "📅 تجيك اشعارات عن مواعيد فعاليات الحفل",
                       "🏆  تتابع الفائزين مباشرة اثناء الحفل",
                     ].map((benefit, index) => (
-                      // Changed justify-end to justify-start and swapped span order
                       <li key={index} className="text-gray-700 text-sm leading-relaxed flex items-center justify-start gap-2">
-                         <span>{benefit.substring(0, 2)}</span> {/* Emoji First (Right) */}
-                         <span>{benefit.substring(2)}</span>    {/* Text Second (Left) */}
+                         <span>{benefit.substring(0, 2)}</span>
+                         <span>{benefit.substring(2)}</span>
                       </li>
                     ))}
                   </ul>

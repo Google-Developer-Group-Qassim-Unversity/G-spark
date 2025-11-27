@@ -150,18 +150,18 @@ export function VotingSection() {
   return (
     <section id="voting" className="relative min-h-screen flex items-center justify-center py-20 overflow-hidden bg-white">
       
-      {/* Background Decorations */}
+      {/* --- FIXED: Background Decorations (Mobile Optimized) --- */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         
         {/* Top Right: Red Blob */}
         <div 
-          className="absolute -top-[10%] -right-[5%] w-[65vw] h-[65vw] rounded-full blur-[110px] opacity-15"
+          className="absolute -top-[10%] -right-[30%] md:-top-[10%] md:-right-[5%] w-[130vw] h-[130vw] md:w-[65vw] md:h-[65vw] rounded-full blur-[80px] md:blur-[110px] opacity-15"
           style={{ background: 'radial-gradient(circle, #EA4335 0%, #FF4473 60%, transparent 100%)' }} 
         />
 
         {/* Bottom Left: Blue Blob */}
         <div 
-          className="absolute -bottom-[15%] -left-[10%] w-[70vw] h-[70vw] rounded-full blur-[120px] opacity-15"
+          className="absolute -bottom-[15%] -left-[30%] md:-bottom-[15%] md:-left-[10%] w-[140vw] h-[140vw] md:w-[70vw] md:h-[70vw] rounded-full blur-[80px] md:blur-[120px] opacity-15"
           style={{ background: 'radial-gradient(circle, #4285F4 0%, #242E48 60%, transparent 100%)' }}
         />
 
@@ -178,10 +178,8 @@ export function VotingSection() {
         />
       </div>
 
-      {/* --- NEW: Connector Gradient (Top Fade) --- */}
-      {/* This ensures the bottom of Notifications blends seamlessly here */}
+      {/* --- Connector Gradient (Top Fade) --- */}
       <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none" />
-      {/* ------------------------------------------ */}
 
       <div className="relative z-10 container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
