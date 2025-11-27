@@ -148,38 +148,39 @@ export function VotingSection() {
   const maxVotes = Math.max(...departments.map(d => d.votes), 1);
 
   return (
-    <section id="voting" className="relative min-h-screen flex items-center justify-center py-20 overflow-hidden bg-white">
+    // REMOVED min-h-screen, CHANGED py-20 to py-12 for tighter gap
+    <section id="voting" className="relative flex items-center justify-center py-3 overflow-hidden bg-white">
       
-      {/* --- FIXED: Background Decorations (Mobile Optimized) --- */}
+      {/* --- FIXED: Sharper Background Decorations --- */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         
-        {/* Top Right: Red Blob */}
+        {/* Top Right: Red Blob - Sharper */}
         <div 
-          className="absolute -top-[10%] -right-[30%] md:-top-[10%] md:-right-[5%] w-[130vw] h-[130vw] md:w-[65vw] md:h-[65vw] rounded-full blur-[80px] md:blur-[110px] opacity-15"
-          style={{ background: 'radial-gradient(circle, #EA4335 0%, #FF4473 60%, transparent 100%)' }} 
+          className="absolute -top-[10%] -right-[20%] md:-top-[10%] md:-right-[5%] w-[110vw] h-[110vw] md:w-[65vw] md:h-[65vw] rounded-full blur-[70px] md:blur-[90px] opacity-35"
+          style={{ background: 'radial-gradient(circle, #EA4335 0%, #FF4473 50%, transparent 80%)' }} 
         />
 
-        {/* Bottom Left: Blue Blob */}
+        {/* Bottom Left: Blue Blob - Sharper */}
         <div 
-          className="absolute -bottom-[15%] -left-[30%] md:-bottom-[15%] md:-left-[10%] w-[140vw] h-[140vw] md:w-[70vw] md:h-[70vw] rounded-full blur-[80px] md:blur-[120px] opacity-15"
-          style={{ background: 'radial-gradient(circle, #4285F4 0%, #242E48 60%, transparent 100%)' }}
+          className="absolute -bottom-[15%] -left-[20%] md:-bottom-[15%] md:-left-[10%] w-[120vw] h-[120vw] md:w-[70vw] md:h-[70vw] rounded-full blur-[70px] md:blur-[90px] opacity-40"
+          style={{ background: 'radial-gradient(circle, #4285F4 0%, #242E48 50%, transparent 80%)' }}
         />
 
         {/* Floating Spark Dots */}
         <motion.div 
-          className="absolute top-[20%] left-[10%] w-4 h-4 rounded-full bg-[#EA4335] blur-[2px]"
-          animate={{ y: [0, -25, 0], opacity: [0.3, 0.8, 0.3] }}
+          className="absolute top-[20%] left-[10%] w-4 h-4 rounded-full bg-[#EA4335] blur-[1px]"
+          animate={{ y: [0, -25, 0], opacity: [0.6, 1, 0.6] }}
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div 
           className="absolute bottom-[30%] right-[15%] w-3 h-3 rounded-full bg-[#4285F4] blur-[1px]"
-          animate={{ y: [0, 25, 0], opacity: [0.3, 0.7, 0.3] }}
+          animate={{ y: [0, 25, 0], opacity: [0.6, 1, 0.6] }}
           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
         />
       </div>
 
       {/* --- Connector Gradient (Top Fade) --- */}
-      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none" />
+      <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-white via-white/80 to-transparent z-10 pointer-events-none" />
 
       <div className="relative z-10 container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
@@ -192,8 +193,8 @@ export function VotingSection() {
               className="flex justify-center mb-6"
             >
               <div className="relative">
-                <div className="absolute inset-0 bg-[#FBBC05]/30 rounded-2xl blur-xl animate-pulse"></div>
-                <div className="relative bg-[#FBBC05] p-5 rounded-2xl shadow-lg shadow-[#FBBC05]/20">
+                <div className="absolute inset-0 bg-[#FBBC05]/50 rounded-2xl blur-xl animate-pulse"></div>
+                <div className="relative bg-gradient-to-br from-[#FBBC05] to-[#F4B46B] p-5 rounded-2xl shadow-lg shadow-[#FBBC05]/30">
                   <TrophyIcon className="h-16 w-16 text-white" />
                 </div>
               </div>
@@ -206,9 +207,9 @@ export function VotingSection() {
             </p>
           </div>
 
-          {/* Leaderboard */}
-          <Card dir='rtl' className="shadow-2xl shadow-gray-200/50 border border-gray-100 bg-white/80 backdrop-blur-md overflow-hidden">
-            <CardHeader className="border-b border-gray-50/50 bg-gradient-to-r from-[#4285F4]/5 to-[#EA4335]/5">
+          {/* --- FIXED: Unified Frosted Glass Card --- */}
+          <Card dir='rtl' className="shadow-2xl shadow-gray-200/50 border border-white/50 bg-white/60 backdrop-blur-xl overflow-hidden">
+            <CardHeader className="border-b border-gray-100/50">
               <CardTitle className="text-2xl text-[#242E48] flex items-center gap-2">
                 <TrophyIcon className="h-6 w-6 text-[#FBBC05]" />
                 لوحة المتصدرين

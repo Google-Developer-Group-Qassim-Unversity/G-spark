@@ -47,30 +47,31 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
   }, []);
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-white pt-16 pb-20">
+    // Reduced pb-20 to pb-12 to pull the next section closer
+    <section className="relative min-h-screen flex items-center overflow-hidden bg-white pt-16 pb-3">
       
-      {/* --- FIXED: Enhanced Vibrant Background (Mobile Optimized) --- */}
+      {/* --- Sharper, Vibrant Background --- */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         
-        {/* 1. Top Right: Purple/Blue - Made HUGE on mobile (140vw) so it's visible */}
+        {/* 1. Top Right: Purple/Blue */}
         <div 
-          className="absolute -top-[30%] -right-[30%] md:-top-[20%] md:-right-[10%] w-[140vw] h-[140vw] md:w-[70vw] md:h-[70vw] rounded-full blur-[80px] md:blur-[120px] opacity-20"
-          style={{ background: 'radial-gradient(circle, #A112F4 0%, #4285F4 60%, transparent 100%)' }} 
+          className="absolute -top-[20%] -right-[20%] md:-top-[20%] md:-right-[10%] w-[120vw] h-[120vw] md:w-[70vw] md:h-[70vw] rounded-full blur-[70px] md:blur-[90px] opacity-40"
+          style={{ background: 'radial-gradient(circle, #A112F4 0%, #4285F4 50%, transparent 80%)' }} 
         />
 
-        {/* 2. Bottom Left: Pink/Red - Made HUGE on mobile */}
+        {/* 2. Bottom Left: Pink/Red */}
         <div 
-          className="absolute -bottom-[20%] -left-[30%] md:-bottom-[20%] md:-left-[10%] w-[140vw] h-[140vw] md:w-[60vw] md:h-[60vw] rounded-full blur-[80px] md:blur-[100px] opacity-15"
-          style={{ background: 'radial-gradient(circle, #FF4473 0%, #EA4335 60%, transparent 100%)' }}
+          className="absolute -bottom-[20%] -left-[20%] md:-bottom-[20%] md:-left-[10%] w-[120vw] h-[120vw] md:w-[60vw] md:h-[60vw] rounded-full blur-[70px] md:blur-[90px] opacity-35"
+          style={{ background: 'radial-gradient(circle, #FF4473 0%, #EA4335 50%, transparent 80%)' }}
         />
 
         {/* 3. Center Floating Element: Yellow/Green */}
         <motion.div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] md:w-[40vw] md:h-[40vw] rounded-full blur-[60px] md:blur-[90px] opacity-10"
-          style={{ background: 'radial-gradient(circle, #FBBC05 0%, #34A853 60%, transparent 100%)' }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] md:w-[40vw] md:h-[40vw] rounded-full blur-[60px] md:blur-[80px] opacity-30 mix-blend-overlay"
+          style={{ background: 'radial-gradient(circle, #FBBC05 0%, #34A853 50%, transparent 80%)' }}
           animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.08, 0.12, 0.08],
+            scale: [1, 1.1, 1],
+            opacity: [0.3, 0.4, 0.3],
           }}
           transition={{ 
             duration: 8,
@@ -81,22 +82,22 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
 
         {/* 4. Tiny "Spark" dots */}
         <motion.div 
-          className="absolute top-1/4 left-1/4 w-3 h-3 rounded-full bg-[#FBBC05] blur-[2px]"
-          animate={{ y: [0, -20, 0], opacity: [0.4, 0.8, 0.4] }}
+          className="absolute top-1/4 left-1/4 w-3 h-3 rounded-full bg-[#FBBC05] blur-[1px]"
+          animate={{ y: [0, -20, 0], opacity: [0.6, 1, 0.6] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div 
-          className="absolute bottom-1/3 right-1/4 w-4 h-4 rounded-full bg-[#4285F4] blur-[2px]"
-          animate={{ y: [0, 30, 0], opacity: [0.3, 0.7, 0.3] }}
+          className="absolute bottom-1/3 right-1/4 w-4 h-4 rounded-full bg-[#4285F4] blur-[1px]"
+          animate={{ y: [0, 30, 0], opacity: [0.5, 0.9, 0.5] }}
           transition={{ duration: 6, repeat: Infinity, delay: 1, ease: "easeInOut" }}
         />
       </div>
 
-      {/* --- Connector Gradient (Bottom Fade) --- */}
-      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-white to-transparent z-0 pointer-events-none" />
+      {/* Connector Gradient (Bottom Fade) */}
+      <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-white via-white/80 to-transparent z-0 pointer-events-none" />
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-6 lg:px-12 py-20">
+      <div className="relative z-10 container mx-auto px-6 lg:px-12 py-10">
         <div className="max-w-7xl mx-auto">
           {/* Logo and Title */}
           <motion.div
@@ -178,7 +179,7 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
                   transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
                   className="relative group"
                 >
-                  <div className="relative bg-white rounded-xl md:rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col items-center justify-center text-center">
+                  <div className="relative bg-white/80 backdrop-blur-lg rounded-xl md:rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col items-center justify-center text-center">
                     <div className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#4285F4] mb-2">
                       {String(item.value).padStart(2, '0')}
                     </div>
@@ -226,7 +227,7 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
                 transition={{ duration: 0.5, delay: 0.7 + index * 0.1 }}
                 className="group relative"
               >
-                <div className="relative bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+                <div className="relative bg-white/80 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
                   <div className="flex flex-col items-center text-center space-y-4">
                     <div
                       className="inline-flex p-3 rounded-xl"
