@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { BellIcon, TrophyIcon, SparklesIcon, UsersIcon, CalendarIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { GetInvitationButton } from '@/components/get-invitation-button'; 
 
 interface HeroSectionProps {
   onNotificationsClick: () => void;
@@ -47,70 +48,51 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-white pt-16 pb-20">
-      {/* Enhanced Background with Decorative Blobs */}
+      
+      {/* Background Decorations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Existing subtle gradient blobs */}
-        <div className="absolute top-20 right-20 w-96 h-96 bg-[#4285F4]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-[#EA4335]/5 rounded-full blur-3xl" />
-        
-        {/* New decorative floating blobs - adjusted for mobile */}
+        {/* Top Right: Purple/Blue */}
+        <div 
+          className="absolute -top-[20%] -right-[10%] w-[70vw] h-[70vw] rounded-full blur-[120px] opacity-20"
+          style={{ background: 'radial-gradient(circle, #A112F4 0%, #4285F4 60%, transparent 100%)' }} 
+        />
+
+        {/* Bottom Left: Pink/Red */}
+        <div 
+          className="absolute -bottom-[20%] -left-[10%] w-[60vw] h-[60vw] rounded-full blur-[100px] opacity-15"
+          style={{ background: 'radial-gradient(circle, #FF4473 0%, #EA4335 60%, transparent 100%)' }}
+        />
+
+        {/* Center: Yellow/Green */}
         <motion.div 
-          className="absolute top-32 left-2 md:left-16 w-32 h-32 md:w-64 md:h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-30"
-          animate={{ 
-            y: [0, -20, 0],
-            x: [0, 10, 0],
-          }}
-          transition={{ 
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] rounded-full blur-[90px] opacity-10"
+          style={{ background: 'radial-gradient(circle, #FBBC05 0%, #34A853 60%, transparent 100%)' }}
+          animate={{ scale: [1, 1.2, 1], opacity: [0.08, 0.12, 0.08] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        {/* Spark Dots */}
+        <motion.div 
+          className="absolute top-1/4 left-1/4 w-3 h-3 rounded-full bg-[#FBBC05] blur-[2px]"
+          animate={{ y: [0, -20, 0], opacity: [0.4, 0.8, 0.4] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div 
-          className="absolute top-48 right-2 md:right-20 w-28 h-28 md:w-56 md:h-56 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-30"
-          animate={{ 
-            y: [0, 25, 0],
-            x: [0, -15, 0],
-          }}
-          transition={{ 
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1
-          }}
-        />
-        <motion.div 
-          className="absolute bottom-40 left-4 md:left-1/4 w-28 h-28 md:w-48 md:h-48 bg-[#34A853]/40 rounded-full mix-blend-multiply filter blur-xl opacity-25"
-          animate={{ 
-            y: [0, -30, 0],
-            x: [0, 20, 0],
-          }}
-          transition={{ 
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 2
-          }}
-        />
-        <motion.div 
-          className="absolute bottom-24 right-4 md:right-1/3 w-24 h-24 md:w-44 md:h-44 bg-[#EA4335]/40 rounded-full mix-blend-multiply filter blur-xl opacity-25"
-          animate={{ 
-            y: [0, 20, 0],
-            x: [0, -10, 0],
-          }}
-          transition={{ 
-            duration: 9,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1.5
-          }}
+          className="absolute bottom-1/3 right-1/4 w-4 h-4 rounded-full bg-[#4285F4] blur-[2px]"
+          animate={{ y: [0, 30, 0], opacity: [0.3, 0.7, 0.3] }}
+          transition={{ duration: 6, repeat: Infinity, delay: 1, ease: "easeInOut" }}
         />
       </div>
+
+      {/* --- NEW: The Connector Gradient (Bottom Fade) --- */}
+      {/* This fades the bottom of the section to pure white, removing the hard cut line */}
+      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-white to-transparent z-0 pointer-events-none" />
+      {/* ------------------------------------------------ */}
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 lg:px-12 py-20">
         <div className="max-w-7xl mx-auto">
-          {/* Logo and Title Section */}
+          {/* Logo and Title */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -132,32 +114,38 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
               حفل ختام انشطة مجموعة قوقل للطلبة المطورين
             </h1>
             
-            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-8">
-              انضم إلينا في احتفالية استثنائية تجمع الابتكار والإبداع التقني
+            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-5">
+            سجل معنا الآن عشان توصلك بطاقة الحضور 🤩
             </p>
 
-            {/* CTA Buttons */}
+            <div className="flex flex-col items-center justify-center gap-3 mb-8">
+              <GetInvitationButton 
+                className="bg-black hover:bg-gray-800 text-white text-lg px-12 py-7 rounded-2xl shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 w-full sm:w-auto"
+                text="سجل الآن"
+              />
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button
                 size="lg"
                 onClick={onNotificationsClick}
-                className="bg-[#4285F4] text-white hover:bg-[#4285F4]/90 font-bold text-lg px-10 py-7 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                className="bg-[#4285F4] text-white hover:bg-[#357AE8] border-none font-bold text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
               >
-                <BellIcon className="ml-2 h-6 w-6" />
+                <BellIcon className="ml-2 h-5 w-5" />
                 فعل الاشعارات
               </Button>
               <Button
                 size="lg"
                 onClick={onVotingClick}
-                className="bg-[#EA4335] text-white hover:bg-[#EA4335]/90 font-bold text-lg px-10 py-7 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                className="bg-[#EA4335] text-white hover:bg-[#D93025] border-none font-bold text-lg px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
               >
-                <TrophyIcon className="ml-2 h-6 w-6" />
+                <TrophyIcon className="ml-2 h-5 w-5" />
                 صوت لفريق
               </Button>
             </div>
           </motion.div>
 
-          {/* Countdown Timer */}
+          {/* Countdown */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}

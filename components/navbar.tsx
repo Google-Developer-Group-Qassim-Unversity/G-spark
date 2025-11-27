@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { MenuIcon, XIcon, LogOut, User, Mail } from 'lucide-react';
+import { MenuIcon, XIcon, LogOut, User } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/nextjs';
 import { 
   DropdownMenu, 
@@ -15,7 +15,6 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { InvitationDialog } from '@/components/invitation-dialog';
 import { AuthButton } from '@/components/auth-button';
 
 export function Navbar() {
@@ -23,7 +22,6 @@ export function Navbar() {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [invitationDialogOpen, setInvitationDialogOpen] = useState(false);
   
   // Clerk authentication
   const { isSignedIn, user } = useUser();
@@ -44,16 +42,13 @@ export function Navbar() {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      // Determine if navbar should be visible
       if (currentScrollY < 10) {
         setIsVisible(true);
         setIsScrolled(false);
       } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        // Scrolling down - hide navbar
         setIsVisible(false);
         setIsScrolled(true);
       } else if (currentScrollY < lastScrollY) {
-        // Scrolling up - show navbar
         setIsVisible(true);
         setIsScrolled(true);
       }
@@ -88,7 +83,7 @@ export function Navbar() {
           <div className="flex items-center justify-between">
             {/* Left Side - Auth Buttons and Mobile Menu */}
             <div className="flex items-center gap-3">
-              {/* Mobile Menu Button - First */}
+              {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="md:hidden p-2 text-[#242E48] hover:bg-gray-100 rounded-xl transition-colors"
@@ -99,27 +94,6 @@ export function Navbar() {
                   <MenuIcon className="h-6 w-6" />
                 )}
               </button>
-
-              {/* Mobile Invitation Button - Second */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  if (!isSignedIn) {
-                    // Use existing auth flow
-                    const mainAppUrl = process.env.NEXT_PUBLIC_MAIN_APP_URL;
-                    const currentUrl = window.location.origin;
-                    window.location.href = `${mainAppUrl}/sign-in?redirect_url=${encodeURIComponent(currentUrl)}`;
-                  } else {
-                    setInvitationDialogOpen(true);
-                  }
-                }}
-                className="md:hidden rounded-full border-[#4285F4] text-[#4285F4] hover:bg-[#4285F4]/10 px-3 py-2 text-xs font-semibold whitespace-nowrap"
-                dir="rtl"
-              >
-                <Mail className="h-4 w-4 ml-1" />
-                احصل على دعوة
-              </Button>
 
               {/* Desktop Auth Buttons */}
               <div className="hidden md:flex items-center gap-3">
@@ -165,26 +139,6 @@ export function Navbar() {
                     <AuthButton type="signup" />
                   </>
                 )}
-                {/* Invitation Button - Always show */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (!isSignedIn) {
-                      // Use existing auth flow
-                      const mainAppUrl = process.env.NEXT_PUBLIC_MAIN_APP_URL;
-                      const currentUrl = window.location.origin;
-                      window.location.href = `${mainAppUrl}/sign-in?redirect_url=${encodeURIComponent(currentUrl)}`;
-                    } else {
-                      setInvitationDialogOpen(true);
-                    }
-                  }}
-                  className="rounded-full border-[#4285F4] text-[#4285F4] hover:bg-[#4285F4]/10 px-4 py-2 text-sm font-semibold whitespace-nowrap"
-                  dir="rtl"
-                >
-                  <Mail className="h-4 w-4 ml-2" />
-                  احصل على دعوة
-                </Button>
               </div>
             </div>
 
@@ -225,13 +179,11 @@ export function Navbar() {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
           />
 
-          {/* Menu Panel */}
           <div className="absolute top-24 left-4 right-4 bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 space-y-4 animate-in slide-in-from-top duration-300">
             {[
               { label: 'اشعارات', id: 'notifications' },
@@ -283,9 +235,6 @@ export function Navbar() {
           </div>
         </div>
       )}
-
-      {/* Invitation Dialog */}
-      <InvitationDialog open={invitationDialogOpen} onOpenChange={setInvitationDialogOpen} />
     </>
   );
 }

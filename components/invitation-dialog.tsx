@@ -1,260 +1,174 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { useState, useEffect, useCallback } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useUser } from '@clerk/nextjs';
+import { useAuth, useUser } from '@clerk/nextjs'; 
 import { Loader2, CheckCircle2 } from 'lucide-react';
+
+// --- CONFIGURATION ---
+const API_BASE_URL = 'https://localhost:7000'; 
+const EVENT_ID = '246';
 
 interface InvitationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-interface InvitationStatus {
-  formId?: string;
-  alreadySubmitted: boolean;
-}
-
 export function InvitationDialog({ open, onOpenChange }: InvitationDialogProps) {
-  const { user } = useUser();
-  const [loading, setLoading] = useState(false);
-  const [checkingStatus, setCheckingStatus] = useState(true);
-  const [invitationStatus, setInvitationStatus] = useState<InvitationStatus | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // --- 1. HOOKS ---
+  const { user } = useUser();      // Still needed to check if logged in
+  const { getToken } = useAuth();  // For the actual token string
+  
+  // --- 2. STATE ---
+  const [viewState, setViewState] = useState<'loading' | 'form' | 'success' | 'already-submitted' | 'error'>('loading');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [formId, setFormId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Check invitation status when dialog opens
-  useEffect(() => {
-    const checkInvitationStatus = async () => {
-      if (!user || !open) return;
+  // --- 3. GET FORM ID (Runs on Open) ---
+  const checkStatus = useCallback(async () => {
+    // Basic guard: If not logged in or dialog closed, do nothing
+    if (!user || !open) return;
+    
+    setViewState('loading');
+    
+    try {
+      const token = await getToken();
+
+      const response = await fetch(`${API_BASE_URL}/events/${EVENT_ID}/form`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error('فشل في الاتصال بالخادم');
+
+      const data = await response.json();
       
-      setCheckingStatus(true);
-      setError(null);
+      // Store the Form ID
+      setFormId(data.formId || data.id);
       
-      try {
-        const eventId = '246';
-        
-        // Get Clerk session token from cookie
-        const sessionToken = document.cookie
-          .split('; ')
-          .find(row => row.startsWith('__session='))
-          ?.split('=')[1];
-
-        const response = await fetch(`http://API_ENDPOINT_IP/events/${eventId}/form`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${sessionToken}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('فشل في التحقق من حالة الطلب');
-        }
-
-        const data = await response.json();
-        console.log('Form data received:', data);
-        setInvitationStatus({
-          formId: data.id || data.formId,
-          alreadySubmitted: data.alreadySubmitted || false,
-        });
-        
-      } catch (err) {
-        console.error('Error checking invitation status:', err);
-        setError('حدث خطأ أثناء التحقق من حالة الطلب. يرجى المحاولة مرة أخرى.');
-      } finally {
-        setCheckingStatus(false);
-      }
-    };
-
-    if (open) {
-      checkInvitationStatus();
+      // Show the form immediately (we wait for the POST to check if already submitted)
+      setViewState('form');
+      
+    } catch (err) {
+      console.error(err);
+      setErrorMessage('حدث خطأ أثناء تحميل البيانات');
+      setViewState('error');
     }
-  }, [user, open]);
+  }, [user, open, getToken]);
 
-  const handleSubmitInvitation = async () => {
-    if (!user || !invitationStatus?.formId) return;
+  useEffect(() => {
+    if (open) checkStatus();
+  }, [open, checkStatus]);
 
-    setLoading(true);
-    setError(null);
+  // --- 4. SUBMIT FORM (POST) ---
+  const handleSubmit = async () => {
+    if (!user || !formId) return;
+    
+    setIsSubmitting(true);
+    setErrorMessage(null);
 
     try {
-      // Get Clerk session token from cookie
-      const sessionToken = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('__session='))
-        ?.split('=')[1];
+      const token = await getToken();
 
-      const response = await fetch('http://API_ENDPOINT_IP/forms/submissions', {
+      const response = await fetch(`${API_BASE_URL}/forms/submissions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${sessionToken}`,
+          'Authorization': `Bearer ${token}`, 
         },
         body: JSON.stringify({
-          formId: invitationStatus.formId,
-          token: user.id, // Use user ID as token
+          formId: formId
         }),
       });
 
+      // --- BACKEND RESPONSE HANDLING ---
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'فشل إرسال الطلب. يرجى المحاولة مرة أخرى.');
+        const errorText = await response.text(); 
+        
+        // Check if C# Backend said "Member already submitted"
+        if (response.status === 400 && errorText.includes("already submitted")) {
+           setViewState('already-submitted');
+           return;
+        }
+
+        // Generic error
+        throw new Error('فشل إرسال الطلب');
       }
 
-      setSubmitSuccess(true);
+      setViewState('success');
       
     } catch (err) {
-      console.error('Error submitting invitation:', err);
-      setError(err instanceof Error ? err.message : 'حدث خطأ أثناء إرسال الطلب');
+      setErrorMessage(err instanceof Error ? err.message : 'حدث خطأ');
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
+  // --- 5. RENDER UI ---
   const renderContent = () => {
-    // Loading state while checking status
-    if (checkingStatus) {
-      return (
-        <div className="flex flex-col items-center justify-center py-12 gap-4">
-          <Loader2 className="h-10 w-10 animate-spin text-[#4285F4]" />
-          <p className="text-gray-600 text-center">جارٍ التحقق من حالة الطلب...</p>
-        </div>
-      );
-    }
-
-    // Error state
-    if (error && !invitationStatus) {
-      return (
-        <div className="flex flex-col items-center justify-center py-8 gap-4">
-          <div className="w-full px-4">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm text-center">
-              {error}
-            </div>
+    switch (viewState) {
+      case 'loading':
+        return (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
+            <p className="mt-4 text-gray-600">لحظات...</p>
           </div>
-          <Button
-            onClick={() => {
-              setError(null);
-              setCheckingStatus(true);
-              // Retry
-              if (user && open) {
-                const eventId = '246';
-                const sessionToken = document.cookie
-                  .split('; ')
-                  .find(row => row.startsWith('__session='))
-                  ?.split('=')[1];
+        );
 
-                fetch(`http://API_ENDPOINT_IP/events/${eventId}/form`, {
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${sessionToken}`,
-                  },
-                })
-                  .then(res => res.json())
-                  .then(data => {
-                    console.log('Form data received:', data);
-                    setInvitationStatus({
-                      formId: data.id || data.formId,
-                      alreadySubmitted: data.alreadySubmitted || false,
-                    });
-                    setCheckingStatus(false);
-                  })
-                  .catch(() => {
-                    setError('حدث خطأ أثناء التحقق من حالة الطلب');
-                    setCheckingStatus(false);
-                  });
-              }
-            }}
-            variant="outline"
-            className="border-[#4285F4] text-[#4285F4]"
-          >
-            إعادة المحاولة
-          </Button>
-        </div>
-      );
-    }
-
-    // Success message after submission
-    if (submitSuccess) {
-      return (
-        <div className="flex flex-col items-center justify-center py-12 gap-6">
-          <CheckCircle2 className="h-20 w-20 text-[#34A853]" />
-          <p className="text-center text-gray-800 leading-relaxed px-6 text-lg">
-            تم إرسال طلب الدعوة بنجاح! ستصلك رسالة عبر البريد الإلكتروني قريبًا تحتوي على بطاقة الدعوة.
-          </p>
-        </div>
-      );
-    }
-
-    // Already submitted message
-    if (invitationStatus?.alreadySubmitted) {
-      return (
-        <div className="flex flex-col items-center justify-center py-12 gap-6">
-          <CheckCircle2 className="h-20 w-20 text-[#4285F4]" />
-          <p className="text-center text-gray-800 leading-relaxed px-6 text-lg">
-            لقد تم إرسال طلبك مسبقًا. ستصلك رسالة عبر البريد الإلكتروني قريبًا تحتوي على بطاقة الدعوة الخاصة بالفعالية.
-          </p>
-        </div>
-      );
-    }
-
-    // New request form
-    return (
-      <div className="flex flex-col items-center gap-8 py-8">
-        <p className="text-center text-gray-700 leading-relaxed px-6 text-base">
-          اضغط على الزر أدناه لإرسال طلب الحصول على دعوة لحضور الفعالية
-        </p>
-
-        {error && (
-          <div className="w-full px-4">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800 text-sm text-center">
-              {error}
-            </div>
+      case 'error':
+        return (
+          <div className="flex flex-col items-center justify-center py-8 gap-4">
+            <p className="text-red-600">{errorMessage}</p>
+            <Button variant="outline" onClick={checkStatus}>حدث خطأ حاول مره ثانية 😞</Button>
           </div>
-        )}
+        );
 
-        <Button
-          onClick={handleSubmitInvitation}
-          disabled={loading}
-          className="w-full max-w-sm bg-[#4285F4] hover:bg-[#357AE8] text-white font-bold text-lg px-8 py-7 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="ml-2 h-6 w-6 animate-spin" />
-              جارٍ الإرسال...
-            </>
-          ) : (
-            'ارسال طلب دعوة للحفل'
-          )}
-        </Button>
+      case 'success':
+        return (
+          <div className="flex flex-col items-center justify-center py-12 gap-6">
+            <CheckCircle2 className="h-20 w-20 text-green-500" />
+            <p className="text-center text-gray-800 text-lg">تم تسجيلك, لحظات وتجيك بطاقة الحضور على الايميل 🎉</p>
+          </div>
+        );
 
-        <p className="text-xs text-gray-500 text-center px-6 max-w-md">
-          سيتم مراجعة طلبك وإرسال بطاقة الدعوة عبر البريد الإلكتروني المسجل
-        </p>
-      </div>
-    );
+      case 'already-submitted':
+        return (
+          <div className="flex flex-col items-center justify-center py-12 gap-6">
+            <CheckCircle2 className="h-20 w-20 text-blue-500" />
+            <p className="text-center text-gray-800 text-lg">انت مسجل معنا من قبل شيك على ايميلك بتحصل البطاقة وصلتك ✨</p>
+          </div>
+        );
+
+      case 'form':
+        return (
+          <div className="flex flex-col items-center gap-6 py-8">
+            <p className="text-center text-gray-700">اضغط عشان تسجل وتجيك بطاقة الحضور 🎊</p>
+            {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
+            
+            <Button 
+              onClick={handleSubmit} 
+              disabled={isSubmitting}
+              className="w-full bg-black hover:bg-gray-800 text-white py-6 text-lg"
+            >
+              {isSubmitting ? <Loader2 className="animate-spin" /> : 'تسجيل'}
+            </Button>
+          </div>
+        );
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md" dir="rtl">
         <DialogHeader>
-          <DialogTitle className="text-center text-2xl font-bold text-[#242E48]" dir="rtl">
-            طلب دعوة الحضور
-          </DialogTitle>
+          <DialogTitle className="text-center">تسجيل في G-Spark </DialogTitle>
         </DialogHeader>
-        <div dir="rtl">
-          {renderContent()}
-        </div>
+        {renderContent()}
       </DialogContent>
     </Dialog>
   );

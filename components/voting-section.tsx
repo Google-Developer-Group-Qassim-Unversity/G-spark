@@ -7,6 +7,7 @@ import { getDepartmentVotes, castVote, checkHasVoted, Department } from '@/lib/a
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useAuth } from '@clerk/nextjs';
 import { DepartmentCard } from '@/components/department-card';
+import { motion } from 'framer-motion';
 
 export function VotingSection() {
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -16,7 +17,6 @@ export function VotingSection() {
   const [checkingVoteStatus, setCheckingVoteStatus] = useState(false);
   const { toast } = useToast();
   
-  // Clerk authentication
   const { isSignedIn, user } = useUser();
   const { getToken } = useAuth();
 
@@ -38,15 +38,10 @@ export function VotingSection() {
       const token = await getToken();
       
       if (token) {
-        console.log('[v0] Got token for vote status check, length:', token.length);
         const hasVotedFromApi = await checkHasVoted(token);
         setHasVoted(hasVotedFromApi);
-      } else {
-        console.warn('[v0] No token available for vote status check');
-      }
+      } 
     } catch (error) {
-      console.error('[v0] Failed to check vote status:', error);
-      // Fallback to localStorage
       if (user) {
         const voted = localStorage.getItem(`gspark-voted-${user.id}`);
         setHasVoted(voted === 'true');
@@ -58,18 +53,15 @@ export function VotingSection() {
 
   useEffect(() => {
     loadDepartments();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (isSignedIn && user) {
       checkUserVoteStatus();
     } else {
-      // Fallback to old localStorage method for unauthenticated users
       const voted = localStorage.getItem('gspark-voted');
       setHasVoted(voted === 'true');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSignedIn, user]);
 
   const handleVote = async (departmentId: number) => {
@@ -80,7 +72,6 @@ export function VotingSection() {
         variant: 'default',
       });
       
-      // Redirect to sign-in page
       const mainAppUrl = process.env.NEXT_PUBLIC_MAIN_APP_URL || 'https://your-main-app.com';
       const currentUrl = typeof window !== 'undefined' ? window.location.origin : '';
       setTimeout(() => {
@@ -103,7 +94,6 @@ export function VotingSection() {
       const token = await getToken();
       
       if (!token) {
-        console.warn('[v0] No token available for voting');
         toast({
           title: 'خطأ في المصادقة',
           description: 'لم نتمكن من الحصول على رمز المصادقة.',
@@ -113,14 +103,12 @@ export function VotingSection() {
         return;
       }
 
-      console.log('[v0] Got token for voting, length:', token.length);
       const result = await castVote(departmentId, token);
       
       if (result.success && result.departments) {
         setHasVoted(true);
         setDepartments(result.departments.sort((a, b) => b.votes - a.votes));
         
-        // Store in localStorage as backup
         if (user) {
           localStorage.setItem(`gspark-voted-${user.id}`, 'true');
         } else {
@@ -146,7 +134,6 @@ export function VotingSection() {
         });
       }
     } catch (error) {
-      console.error('[v0] Vote error:', error);
       toast({
         title: 'خطأ',
         description: 'فشل في تسجيل التصويت.',
@@ -161,19 +148,58 @@ export function VotingSection() {
   const maxVotes = Math.max(...departments.map(d => d.votes), 1);
 
   return (
-    <section id="voting" className="min-h-screen flex items-center justify-center py-20 bg-gradient-to-br from-gray-50 to-white">
-      <div className="container mx-auto px-4">
+    <section id="voting" className="relative min-h-screen flex items-center justify-center py-20 overflow-hidden bg-white">
+      
+      {/* Background Decorations */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        
+        {/* Top Right: Red Blob */}
+        <div 
+          className="absolute -top-[10%] -right-[5%] w-[65vw] h-[65vw] rounded-full blur-[110px] opacity-15"
+          style={{ background: 'radial-gradient(circle, #EA4335 0%, #FF4473 60%, transparent 100%)' }} 
+        />
+
+        {/* Bottom Left: Blue Blob */}
+        <div 
+          className="absolute -bottom-[15%] -left-[10%] w-[70vw] h-[70vw] rounded-full blur-[120px] opacity-15"
+          style={{ background: 'radial-gradient(circle, #4285F4 0%, #242E48 60%, transparent 100%)' }}
+        />
+
+        {/* Floating Spark Dots */}
+        <motion.div 
+          className="absolute top-[20%] left-[10%] w-4 h-4 rounded-full bg-[#EA4335] blur-[2px]"
+          animate={{ y: [0, -25, 0], opacity: [0.3, 0.8, 0.3] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute bottom-[30%] right-[15%] w-3 h-3 rounded-full bg-[#4285F4] blur-[1px]"
+          animate={{ y: [0, 25, 0], opacity: [0.3, 0.7, 0.3] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+        />
+      </div>
+
+      {/* --- NEW: Connector Gradient (Top Fade) --- */}
+      {/* This ensures the bottom of Notifications blends seamlessly here */}
+      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none" />
+      {/* ------------------------------------------ */}
+
+      <div className="relative z-10 container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
-            <div className="flex justify-center mb-6">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="flex justify-center mb-6"
+            >
               <div className="relative">
-                <div className="absolute inset-0 bg-[#FBBC05]/20 rounded-2xl blur-xl"></div>
-                <div className="relative bg-[#FBBC05] p-5 rounded-2xl shadow-lg">
+                <div className="absolute inset-0 bg-[#FBBC05]/30 rounded-2xl blur-xl animate-pulse"></div>
+                <div className="relative bg-[#FBBC05] p-5 rounded-2xl shadow-lg shadow-[#FBBC05]/20">
                   <TrophyIcon className="h-16 w-16 text-white" />
                 </div>
               </div>
-            </div>
+            </motion.div>
             <h2 className="text-3xl md:text-4xl font-bold text-[#242E48] mb-3">
               خمن القسم الفائز
             </h2>
@@ -183,15 +209,12 @@ export function VotingSection() {
           </div>
 
           {/* Leaderboard */}
-          <Card dir='rtl' className="shadow-2xl border border-gray-200 bg-gradient-to-r from-[#4285F4]/5 to-[#EA4335]/5 overflow-hidden">
-            <CardHeader className="border-b border-gray-100">
+          <Card dir='rtl' className="shadow-2xl shadow-gray-200/50 border border-gray-100 bg-white/80 backdrop-blur-md overflow-hidden">
+            <CardHeader className="border-b border-gray-50/50 bg-gradient-to-r from-[#4285F4]/5 to-[#EA4335]/5">
               <CardTitle className="text-2xl text-[#242E48] flex items-center gap-2">
                 <TrophyIcon className="h-6 w-6 text-[#FBBC05]" />
                 لوحة المتصدرين
               </CardTitle>
-              <CardDescription className="text-gray-600">
-
-              </CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               {loading || checkingVoteStatus ? (
@@ -211,7 +234,7 @@ export function VotingSection() {
                     maxVotes={maxVotes}
                     hasVoted={hasVoted}
                     voting={voting}
-                    isSignedIn={isSignedIn}
+                    isSignedIn={isSignedIn || false}
                     onVote={handleVote}
                   />
                 ))

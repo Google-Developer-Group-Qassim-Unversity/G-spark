@@ -5,6 +5,7 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/compo
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {BellIcon, CheckCircle2Icon, AlertCircleIcon, SmartphoneIcon, XCircleIcon, BellRingIcon} from "lucide-react";
 import { OneSignalCustomPrompt } from "@/components/onesignal-custom-prompt";
+import { motion } from "framer-motion";
 import {
   requestNotificationPermission,
   getNotificationPermission,
@@ -32,23 +33,17 @@ export function NotificationsSection() {
   useEffect(() => {
     const run = async () => {
       await checkStatus();
-
-      // Set up permission change listener
       onPermissionChange((perm) => {
         setPermission(perm);
       });
-
       setIosInstructions(isIOSSafari());
     };
-
     run();
   }, [checkStatus]);
 
   async function handleSubscribe() {
     if (subscribing) return;
-
     setSubscribing(true);
-
     try {
       await requestNotificationPermission();
       await new Promise((r) => setTimeout(r, 100));
@@ -66,17 +61,47 @@ export function NotificationsSection() {
   return (
     <section
       id="notifications"
-      className="min-h-screen flex items-center justify-center py-20 bg-gradient-to-br from-white to-gray-50"
+      className="relative min-h-screen flex items-center justify-center py-20 overflow-hidden bg-white"
     >
-      <div className="container mx-auto px-4">
+      {/* Background Decorations */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div 
+          className="absolute -top-[10%] -left-[10%] w-[60vw] h-[60vw] rounded-full blur-[120px] opacity-15"
+          style={{ background: 'radial-gradient(circle, #34A853 0%, #81C995 60%, transparent 100%)' }} 
+        />
+        <div 
+          className="absolute -bottom-[10%] -right-[10%] w-[60vw] h-[60vw] rounded-full blur-[120px] opacity-15"
+          style={{ background: 'radial-gradient(circle, #FBBC05 0%, #F4B46B 60%, transparent 100%)' }}
+        />
+        <motion.div 
+          className="absolute top-1/3 right-[10%] w-4 h-4 rounded-full bg-[#34A853] blur-[2px]"
+          animate={{ y: [0, -30, 0], opacity: [0.3, 0.7, 0.3] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute bottom-1/4 left-[15%] w-3 h-3 rounded-full bg-[#FBBC05] blur-[1px]"
+          animate={{ y: [0, 20, 0], opacity: [0.3, 0.8, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
+      </div>
+
+      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none" />
+
+      <div className="relative z-10 container mx-auto px-4">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
-            <div className="flex justify-center mb-4">
-              <div className="bg-blue-400 p-4 rounded-2xl shadow-lg">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="flex justify-center mb-4"
+            >
+              <div className="bg-[#4285F4] p-4 rounded-2xl shadow-lg shadow-[#4285F4]/20">
                 <BellRingIcon className="h-12 w-12 text-white" />
               </div>
-            </div>
+            </motion.div>
             <h2 className="text-3xl md:text-4xl font-bold text-[#242E48] mb-3" dir="rtl">
               فعل الاشعارات
             </h2>
@@ -86,17 +111,17 @@ export function NotificationsSection() {
           </div>
 
           {/* Main Card */}
-          <Card className="shadow-xl border border-gray-200 bg-white overflow-hidden">
-            <CardHeader className="text-center px-6 py-8">
+          <Card className="shadow-2xl shadow-gray-200/50 border border-gray-100 bg-white/80 backdrop-blur-sm overflow-hidden">
+            <CardHeader className="text-center px-6 py-8 border-b border-gray-50">
               <CardTitle className="text-2xl text-[#242E48]" dir="rtl">
                 إشعارات الحفل
               </CardTitle>
             </CardHeader>
 
-            <CardContent className="space-y-6 px-6 pb-8">
-              {/* Status Alert - only show if denied */}
+            <CardContent className="space-y-6 px-6 py-8">
+              {/* Status Alert */}
               {isDenied && (
-                <div className="bg-[#EA4335]/10 border-[#EA4335] rounded-xl border-2 p-4 transition-all duration-300">
+                <div className="bg-[#EA4335]/5 border-[#EA4335]/20 rounded-xl border p-4 transition-all duration-300">
                   <div className="flex items-start gap-3" dir="rtl">
                     <div className="shrink-0 mt-0.5">
                       <XCircleIcon className="h-6 w-6 text-[#EA4335]" />
@@ -114,14 +139,14 @@ export function NotificationsSection() {
                 </div>
               )}
 
-              {/* OneSignal Custom Link Prompt - RED when not subscribed, GREEN when subscribed */}
+              {/* OneSignal Prompt */}
               {!isDenied && (
                 <OneSignalCustomPrompt isSubscribed={isGranted} />
               )}
 
               {/* iOS Instructions */}
               {iosInstructions && (
-                <div className="bg-[#4285F4]/5 border-2 border-[#4285F4]/20 rounded-xl p-6 space-y-4">
+                <div className="bg-[#4285F4]/5 border border-[#4285F4]/20 rounded-xl p-6 space-y-4">
                   <div className="flex items-center gap-2 justify-end flex-col-reverse" dir="rtl">
                     <h4 className="text-lg text-[#242E48] font-bold">
                       لازم تتبع هذي الخطوات عشان تفعل الاشعارات على اجهزة IOS
@@ -143,20 +168,22 @@ export function NotificationsSection() {
                 </div>
               )}
 
-              {/* Benefits List */}
+              {/* Benefits List - FIXED ALIGNMENT */}
               {(
-                <div className="bg-gray-50 rounded-xl p-6 space-y-4">
+                <div className="bg-gray-50/80 rounded-xl p-6 space-y-4">
                   <h4 className="font-bold text-[#242E48] text-right text-base" dir="rtl">
                     ليش تفّعل الاشعارات؟ 
                   </h4>
                   <ul className="space-y-3 text-right" dir="rtl">
                     {[
-                      "💡 عشان تاصلك أخبار ومستجدات الحفل",
+                      "💡 عشان توصلك أخبار ومستجدات الحفل",
                       "📅 تجيك اشعارات عن مواعيد فعاليات الحفل",
                       "🏆  تتابع الفائزين مباشرة اثناء الحفل",
                     ].map((benefit, index) => (
-                      <li key={index} className="text-gray-700 text-sm leading-relaxed">
-                        {benefit}
+                      // Changed justify-end to justify-start and swapped span order
+                      <li key={index} className="text-gray-700 text-sm leading-relaxed flex items-center justify-start gap-2">
+                         <span>{benefit.substring(0, 2)}</span> {/* Emoji First (Right) */}
+                         <span>{benefit.substring(2)}</span>    {/* Text Second (Left) */}
                       </li>
                     ))}
                   </ul>
