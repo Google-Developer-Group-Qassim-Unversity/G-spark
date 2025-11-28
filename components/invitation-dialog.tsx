@@ -25,6 +25,8 @@ export function InvitationDialog({ open, onOpenChange }: InvitationDialogProps) 
   const [formId, setFormId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
+
   // --- 3. GET FORM ID (Runs on Open) ---
   const checkStatus = useCallback(async () => {
     // Basic guard: If not logged in or dialog closed, do nothing
@@ -87,18 +89,31 @@ export function InvitationDialog({ open, onOpenChange }: InvitationDialogProps) 
 
       // --- BACKEND RESPONSE HANDLING ---
       if (!response.ok) {
-        const errorText = await response.text(); 
-        
-        // Check if C# Backend said "Member already submitted"
-        if (response.status === 400 && errorText.includes("already submitted")) {
-           setViewState('already-submitted');
-           return;
-        }
+    // Attempt to parse JSON first, as the backend now returns JSON on 400
+      try {
+          const errorData = await response.json();
+          
+          // Check for the structured error from the C# backend
+          if (response.status === 400 && errorData.message === "Member already submitted") {
+            // Capture the email from the backend response
+            setSubmittedEmail(errorData.memberEmail); 
+            setViewState('already-submitted');
+            return;
+          }
 
-        // Generic error
-        throw new Error('فشل إرسال الطلب');
+      } catch (e) {
+          // If JSON parsing fails (e.g., generic 500 error, or no content), 
+          // fall back to reading the text for debugging.
+          const errorText = await response.text();
+          console.error("Non-JSON Error Response:", errorText);
+          throw new Error('فشل إرسال الطلب'); 
       }
-
+      
+      // Fallback if the code above doesn't return
+      throw new Error('فشل إرسال الطلب'); 
+}
+      const data = await response.json();
+      setSubmittedEmail(data.submission.memberEmail);
       setViewState('success');
       
     } catch (err) {
@@ -131,7 +146,12 @@ export function InvitationDialog({ open, onOpenChange }: InvitationDialogProps) 
         return (
           <div className="flex flex-col items-center justify-center py-12 gap-6">
             <CheckCircle2 className="h-20 w-20 text-green-500" />
-            <p className="text-center text-gray-800 text-lg">تم تسجيلك, لحظات وتجيك بطاقة الحضور على الايميل 🎉</p>
+            <p className="text-center text-gray-800 text-lg">
+              تم تسجيلك!, أرسلنا لك بطاقة الحضور على ايميلك 🎉
+              <span className="font-bold text-blue-700 block mt-2">
+              {submittedEmail}
+              </span>
+            </p>
           </div>
         );
 
@@ -139,7 +159,12 @@ export function InvitationDialog({ open, onOpenChange }: InvitationDialogProps) 
         return (
           <div className="flex flex-col items-center justify-center py-12 gap-6">
             <CheckCircle2 className="h-20 w-20 text-blue-500" />
-            <p className="text-center text-gray-800 text-lg">انت مسجل معنا من قبل شيك على ايميلك بتحصل البطاقة وصلتك ✨</p>
+            <p className="text-center text-gray-800 text-lg">
+              انت مسجل معنا من قبل! بطاقتك موجودة في ايميلك ✨
+                <span className="font-bold text-blue-700 block mt-2">
+                    {submittedEmail || user?.emailAddresses?.[0]?.emailAddress}
+                </span>
+            </p>
           </div>
         );
 
