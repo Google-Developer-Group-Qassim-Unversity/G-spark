@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { useAuth, useUser } from '@clerk/nextjs'; 
 import { Loader2, CheckCircle2 } from 'lucide-react';
 
-const API_BASE_URL = process.env.NEXT_APP_API_URL; 
-const EVENT_ID = process.env.GSPARK_EVENT_ID;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL; 
+const EVENT_ID = process.env.NEXT_PUBLIC_GSPARK_EVENT_ID;
 
 interface InvitationDialogProps {
   open: boolean;
