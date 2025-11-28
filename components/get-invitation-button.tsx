@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // <-- ADDED useEffect
 import { Button } from '@/components/ui/button'; 
 import { Mail } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
@@ -21,16 +21,23 @@ export function GetInvitationButton({
 }: Props) {
   
   const [open, setOpen] = useState(false);
-  const { isSignedIn } = useUser();
+  // Destructure isLoaded to ensure we run logic only when user status is known
+  const { isSignedIn, isLoaded } = useUser(); 
 
   const handleClick = () => {
     if (!isSignedIn) {
-      // Logic: Redirect to Sign In if not authenticated
+      // --- TRIGGER: Append the 'open_invitation' flag to the return URL ---
       const mainAppUrl = process.env.NEXT_PUBLIC_MAIN_APP_URL;
-      const currentUrl = window.location.origin;
+      
+      // Get the current full URL (including any existing query params)
+      const currentFullUrl = window.location.href;
+      
+      // Create the final return URL, appending our trigger flag
+      const returnUrlWithFlag = currentFullUrl + (currentFullUrl.includes('?') ? '&' : '?') + 'open_invitation=true';
       
       if (mainAppUrl) {
-        window.location.href = `${mainAppUrl}/sign-in?redirect_url=${encodeURIComponent(currentUrl)}`;
+        // Redirect to Sign In, passing the URL with our flag
+        window.location.href = `${mainAppUrl}/sign-in?redirect_url=${encodeURIComponent(returnUrlWithFlag)}`;
       } else {
         console.error("NEXT_PUBLIC_MAIN_APP_URL is missing in .env");
       }
@@ -39,6 +46,23 @@ export function GetInvitationButton({
       setOpen(true);
     }
   };
+
+  // --- LISTENER: Check for the flag on page load ---
+  useEffect(() => {
+    // Only run this logic once the user status is loaded (after Clerk redirect)
+    if (!isLoaded || !window.location.search) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const shouldOpen = urlParams.get('open_invitation');
+
+    if (isSignedIn && shouldOpen === 'true') {
+      setOpen(true);
+
+      // Optional Cleanup: Remove the flag from the URL for a cleaner look
+      urlParams.delete('open_invitation');
+      window.history.replaceState({}, document.title, `${window.location.pathname}?${urlParams.toString()}`);
+    }
+  }, [isLoaded, isSignedIn]); // Re-runs on load and after authentication completes
 
   return (
     <>
