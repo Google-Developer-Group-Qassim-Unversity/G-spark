@@ -21,7 +21,7 @@ export function HeroSection({ onNotificationsClick, onVotingClick }: HeroSection
   });
 
   useEffect(() => {
-    const targetDate = new Date('2025-12-02T00:00:00').getTime();
+    const targetDate = new Date('2025-12-09T00:00:00').getTime();
 
     const updateCountdown = () => {
       const now = new Date().getTime();
